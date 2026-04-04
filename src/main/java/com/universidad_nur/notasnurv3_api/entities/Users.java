@@ -1,4 +1,4 @@
-package com.universidad_nur.notasnurv3_api.entity;
+package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,7 +6,11 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +22,7 @@ import java.util.UUID;
 @Builder
 @SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at is NULL")
-public class User extends BaseEntity {
+public class Users extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue
@@ -26,8 +30,11 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "first_name", nullable = false, length = 50)
-    private String firstName;
+    @Column(name="ci", length = 20)
+    private String ci;
+
+    @Column(name = "name", nullable = false, length = 50)
+    private String name;
 
     @Column(name = "middle_name", length = 50)
     private String middleName;
@@ -52,9 +59,39 @@ public class User extends BaseEntity {
 
     public String getFullName() {
         return String.format("%s %s %s %s",
-                firstName,
+                name,
                 (middleName != null ? middleName : ""),
                 lastName,
                 motherLastName).replace("  ", " ").trim();
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return "ACTIVE".equals(this.status);
     }
 }

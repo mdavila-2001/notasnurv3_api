@@ -1,6 +1,6 @@
-package com.universidad_nur.notasnurv3_api.repository;
+package com.universidad_nur.notasnurv3_api.repositories;
 
-import com.universidad_nur.notasnurv3_api.entity.User;
+import com.universidad_nur.notasnurv3_api.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.stereotype.Repository;
@@ -8,20 +8,19 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<Users, Integer> {
 
     @Procedure(procedureName = "pr_create_user")
     void createNewUser(
-            String p_first_name,
+            String p_name,
             String p_middle_name,
-            String p_last_name_paternal,
-            String p_last_name_maternal,
+            String p_last_name,
+            String p_mother_last_name,
             String p_email,
             String p_pass,
             String p_role
     );
 
-     Optional<User> findByEmail(String email);
-
-     boolean existsByEmail(String email);
+     Optional<Users> findByEmail(String email);
+     Optional<Users> findByCi(String ci);
 }

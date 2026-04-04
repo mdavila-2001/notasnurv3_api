@@ -1,4 +1,4 @@
-package com.universidad_nur.notasnurv3_api.entity;
+package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
