@@ -26,7 +26,7 @@ public class SubjectService {
 
     @Transactional
     public Subject createSubject(SubjectRequest request) {
-        // Validación de Cupo
+    
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
             throw new RuntimeException("La capacidad de la materia debe ser mayor a 0.");
         }
@@ -48,14 +48,12 @@ public class SubjectService {
                 .modality(request.getModality())
                 .capacity(request.getCapacity())
                 .recordStatus("ACTIVE")
-                .semester(semester) 
+                .semester(semester)
                 .teacher(teacher)
                 .build();
 
         return subjectRepository.save(subject);
     }
-
-    // 5. El método que necesitaba java.util.List
     public List<Subject> getAllSubjects() {
         return subjectRepository.findAll();
     }
