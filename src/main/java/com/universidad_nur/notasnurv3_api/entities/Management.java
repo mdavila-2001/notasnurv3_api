@@ -10,7 +10,7 @@ import org.hibernate.type.SqlTypes;
 import java.util.UUID;
 
 @Entity
-@Table(name = "managements")
+@Table(name = "management")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 @SQLDelete(sql = "UPDATE management SET deleted_at = NOW() WHERE id = ?")
