@@ -4,11 +4,12 @@ import com.universidad_nur.notasnurv3_api.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.stereotype.Repository;
+import java.util.UUID;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<Users, Integer> {
+public interface UserRepository extends JpaRepository<Users, UUID> {
 
     @Procedure(procedureName = "pr_create_user")
     void createNewUser(
