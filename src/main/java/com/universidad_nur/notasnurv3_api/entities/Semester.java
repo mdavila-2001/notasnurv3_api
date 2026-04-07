@@ -24,7 +24,7 @@ public class Semester extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "number", nullable = false)
     private Integer number;

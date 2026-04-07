@@ -17,10 +17,8 @@ import java.util.List;
 @SQLRestriction("deleted_at is NULL")
 public class EvaluationPlan extends BaseEntity {
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.UUID)
-    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false, unique = true)

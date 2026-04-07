@@ -37,25 +37,25 @@ public class SemesterController {
 
     @GetMapping("/by-management/{managementId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<SemesterResponse>>> getSemestersByManagement(@PathVariable Long managementId) {
+    public ResponseEntity<ApiResponse<List<SemesterResponse>>> getSemestersByManagement(@PathVariable Integer managementId) {
         List<SemesterResponse> response = semesterService.getSemestersByManagement(managementId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestres obtenidos correctamente", response));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<SemesterResponse>> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<SemesterResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestre encontrado", semesterService.getById(id)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<SemesterResponse>> update(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @Valid @RequestBody SemesterRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestre actualizado", semesterService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         semesterService.delete(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestre eliminado correctamente", null));
     }

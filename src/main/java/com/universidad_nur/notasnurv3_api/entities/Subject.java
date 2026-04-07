@@ -17,10 +17,8 @@ import java.util.UUID;
 @SQLRestriction("deleted_at is NULL")
 public class Subject extends BaseEntity{
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(value = SqlTypes.UUID)
-    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;

@@ -15,8 +15,8 @@ import java.math.BigDecimal;
 @SQLRestriction("deleted_at is NULL")
 public class Component extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Cambiado para funcionar con SERIAL de Postgres
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)

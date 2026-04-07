@@ -19,6 +19,6 @@ public record SemesterRequest(
         LocalDate endDate,
 
         @NotNull(message = "La gestión es obligatoria")
-        Long managementId
+        Integer managementId
 ) {
 }

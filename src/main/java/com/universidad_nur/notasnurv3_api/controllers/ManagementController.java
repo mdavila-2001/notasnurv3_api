@@ -36,20 +36,20 @@ public class ManagementController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ManagementResponse>> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ManagementResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestión encontrada", managementService.getById(id)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ManagementResponse>> update(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @Valid @RequestBody ManagementRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestión actualizada", managementService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteManagement(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteManagement(@PathVariable Integer id) {
         managementService.deleteManagement(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestión eliminada correctamente", null));
     }

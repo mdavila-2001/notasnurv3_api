@@ -41,13 +41,13 @@ public class ManagementService {
     }
 
     @Transactional(readOnly = true)
-    public ManagementResponse getById(Long id) {
+    public ManagementResponse getById(Integer id) {
         return managementRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Gestión no encontrada"));
     }
 
-    public ManagementResponse update(Long id, ManagementRequest request) {
+    public ManagementResponse update(Integer id, ManagementRequest request) {
         Management management = managementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Gestión no encontrada"));
 
@@ -62,7 +62,7 @@ public class ManagementService {
     }
 
     @Transactional
-    public void deleteManagement(Long id) {
+    public void deleteManagement(Integer id) {
         Management management = managementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("La gestión no existe."));
 

@@ -61,7 +61,7 @@ public class SemesterService {
     }
 
     @Transactional(readOnly = true)
-    public List<SemesterResponse> getSemestersByManagement(Long managementId) {
+    public List<SemesterResponse> getSemestersByManagement(Integer managementId) {
         Management management = managementRepository.findById(managementId)
                 .orElseThrow(() -> new RuntimeException("La gestión no existe."));
 
@@ -71,13 +71,13 @@ public class SemesterService {
                 .toList();
     }
 
-    public SemesterResponse getById(Long id) {
+    public SemesterResponse getById(Integer id) {
         Semester semester = semesterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Semestre no encontrado"));
         return toResponse(semester);
     }
 
-    public SemesterResponse update(Long id, SemesterRequest request) {
+    public SemesterResponse update(Integer id, SemesterRequest request) {
         Semester semester = semesterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Semestre no encontrado"));
 
@@ -92,7 +92,7 @@ public class SemesterService {
         return toResponse(semesterRepository.save(semester));
     }
 
-    public void delete(Long id) {
+    public void delete(Integer id) {
         if (!semesterRepository.existsById(id)) {
             throw new RuntimeException("Semestre no encontrado");
         }

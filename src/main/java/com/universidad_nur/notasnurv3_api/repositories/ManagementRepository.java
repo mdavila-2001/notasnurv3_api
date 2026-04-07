@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ManagementRepository extends JpaRepository<Management, Long> {
+public interface ManagementRepository extends JpaRepository<Management, Integer> {
     Optional<Management> findByYear(Integer year);
 
     boolean existsByYear(Integer year);

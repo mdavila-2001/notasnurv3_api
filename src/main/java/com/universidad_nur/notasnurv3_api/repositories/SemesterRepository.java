@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SemesterRepository extends JpaRepository<Semester, Long> {
+public interface SemesterRepository extends JpaRepository<Semester, Integer> {
     boolean existsByManagementAndNumber(Management management, Integer number);
 
-    List<Semester> findByManagementId(Long managementId);
+    List<Semester> findByManagementId(Integer managementId);
 }
