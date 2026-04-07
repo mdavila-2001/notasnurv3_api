@@ -1,7 +1,7 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import com.universidad_nur.notasnurv3_api.dto.SemesterRequestDTO;
-import com.universidad_nur.notasnurv3_api.dto.SemesterResponseDTO;
+import com.universidad_nur.notasnurv3_api.dto.SemesterRequest;
+import com.universidad_nur.notasnurv3_api.dto.SemesterResponse;
 import com.universidad_nur.notasnurv3_api.entities.Management;
 import com.universidad_nur.notasnurv3_api.entities.Semester;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
@@ -13,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,7 +23,7 @@ public class SemesterService {
     private final ManagementRepository managementRepository;
 
     @Transactional
-    public SemesterResponseDTO createSemester(SemesterRequestDTO request) {
+    public SemesterResponse createSemester(SemesterRequest request) {
         if (request.number() < 1 || request.number() > 2) {
             throw new RuntimeException("El número de semestre debe ser 1 o 2.");
         }
@@ -54,7 +53,7 @@ public class SemesterService {
     }
 
     @Transactional(readOnly = true)
-    public List<SemesterResponseDTO> getAllSemesters() {
+    public List<SemesterResponse> getAllSemesters() {
         return semesterRepository.findAll(Sort.by(Sort.Direction.ASC, "management.id", "number"))
                 .stream()
                 .map(this::toResponse)
@@ -62,7 +61,7 @@ public class SemesterService {
     }
 
     @Transactional(readOnly = true)
-    public List<SemesterResponseDTO> getSemestersByManagement(Long managementId) {
+    public List<SemesterResponse> getSemestersByManagement(Long managementId) {
         Management management = managementRepository.findById(managementId)
                 .orElseThrow(() -> new RuntimeException("La gestión no existe."));
 
@@ -72,8 +71,36 @@ public class SemesterService {
                 .toList();
     }
 
-    private SemesterResponseDTO toResponse(Semester semester) {
-        return new SemesterResponseDTO(
+    public SemesterResponse getById(Long id) {
+        Semester semester = semesterRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Semestre no encontrado"));
+        return toResponse(semester);
+    }
+
+    public SemesterResponse update(Long id, SemesterRequest request) {
+        Semester semester = semesterRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Semestre no encontrado"));
+
+        if (request.startDate().isAfter(request.endDate())) {
+            throw new InvalidDateRangeException("La fecha de inicio no puede ser posterior a la de fin");
+        }
+
+        semester.setNumber(request.number());
+        semester.setStartDate(request.startDate());
+        semester.setEndDate(request.endDate());
+
+        return toResponse(semesterRepository.save(semester));
+    }
+
+    public void delete(Long id) {
+        if (!semesterRepository.existsById(id)) {
+            throw new RuntimeException("Semestre no encontrado");
+        }
+        semesterRepository.deleteById(id); // Esto activará el Soft Delete por el @SQLDelete en la entidad
+    }
+
+    private SemesterResponse toResponse(Semester semester) {
+        return new SemesterResponse(
                 semester.getId(),
                 semester.getNumber(),
                 semester.getStartDate(),
