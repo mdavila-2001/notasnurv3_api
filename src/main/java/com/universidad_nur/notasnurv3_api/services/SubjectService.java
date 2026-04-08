@@ -2,8 +2,10 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
+import com.universidad_nur.notasnurv3_api.dto.SubjectResponseDTO;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.entities.Semester;
@@ -22,16 +24,12 @@ public class SubjectService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final SemesterRepository semesterRepository;
-
-
     @Transactional
-    public Subject createSubject(SubjectRequest request) {
-
+    public SubjectResponseDTO createSubject(SubjectRequest request) {
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
             throw new RuntimeException("La capacidad de la materia debe ser mayor a 0.");
         }
 
-    
         Users teacher = userRepository.findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("El usuario con ID " + request.getTeacherId() + " no existe."));
 
@@ -42,42 +40,39 @@ public class SubjectService {
         Semester semester = semesterRepository.findById(request.getSemesterId())
                 .orElseThrow(() -> new RuntimeException("El semestre seleccionado no existe."));
 
-
         Subject subject = Subject.builder()
                 .code(request.getCode())
                 .name(request.getName())
                 .modality(request.getModality())
                 .capacity(request.getCapacity())
-                .management(request.getManagement())
                 .recordStatus("DRAFT")
                 .semester(semester)
                 .teacher(teacher)
                 .build();
 
-        return subjectRepository.save(subject);
+        return mapToResponseDTO(subjectRepository.save(subject));
+    }
+    @Transactional(readOnly = true)
+    public List<SubjectResponseDTO> getAllSubjects() {
+        return subjectRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
-
     @Transactional(readOnly = true)
-    public List<Subject> getAllSubjects() {
-        return subjectRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public Subject getSubjectById(Integer id) {
-        return subjectRepository.findById(id)
+    public SubjectResponseDTO getSubjectById(Integer id) {
+        Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada con ID: " + id));
+        return mapToResponseDTO(subject);
     }
-
     @Transactional
-    public Subject updateSubject(Integer id, SubjectRequest request) {
+    public SubjectResponseDTO updateSubject(Integer id, SubjectRequest request) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No se puede actualizar: Materia no encontrada."));
 
         subject.setName(request.getName());
         subject.setModality(request.getModality());
         subject.setCapacity(request.getCapacity());
-        subject.setManagement(request.getManagement());
 
         if (request.getSemesterId() != null) {
             Semester semester = semesterRepository.findById(request.getSemesterId())
@@ -85,16 +80,40 @@ public class SubjectService {
             subject.setSemester(semester);
         }
 
-        return subjectRepository.save(subject);
+        return mapToResponseDTO(subjectRepository.save(subject));
     }
-
-
     @Transactional
     public void deleteSubject(Integer id) {
         if (!subjectRepository.existsById(id)) {
             throw new RuntimeException("No se puede eliminar: Materia no encontrada.");
         }
-
         subjectRepository.deleteById(id);
     }
-}
+
+    @Transactional
+    public void activateSubject(Integer id) {
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+
+        try {
+            subjectRepository.activateSubject(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
+        }
+    }
+
+
+    private SubjectResponseDTO mapToResponseDTO(Subject subject) {
+        return SubjectResponseDTO.builder()
+                .id(subject.getId())
+                .code(subject.getCode())
+                .name(subject.getName())
+                .modality(subject.getModality())
+                .capacity(subject.getCapacity())
+                .recordStatus(subject.getRecordStatus())
+                .semesterName(subject.getSemester().getName())
+                .teacherName(subject.getTeacher().getFullName())
+                .management(subject.getSemester().getManagement().getName())
+                .build();
+    }
+    
