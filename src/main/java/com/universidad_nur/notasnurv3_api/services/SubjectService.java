@@ -1,6 +1,5 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-// 1. IMPORTANTE: Agregar el import de List
 import java.util.List;
 import java.util.UUID;
 
@@ -26,34 +25,36 @@ public class SubjectService {
 
     @Transactional
     public Subject createSubject(SubjectRequest request) {
-    
+        
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
             throw new RuntimeException("La capacidad de la materia debe ser mayor a 0.");
         }
 
         Users teacher = userRepository.findById(request.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("El docente no existe."));
+                .orElseThrow(() -> new RuntimeException("El usuario con ID " + request.getTeacherId() + " no existe."));
 
         if (teacher.getRole() == null || !teacher.getRole().getName().equalsIgnoreCase("TEACHER")) {
-            throw new RuntimeException("El usuario asignado debe tener el rol de TEACHER.");
+            throw new RuntimeException("El usuario asignado no tiene permisos de docente (Rol incorrecto).");
         }
 
-        Semester semester = semesterRepository.findById(request.getSemesterId())
-                .orElseThrow(() -> new RuntimeException("El semestre seleccionado no existe."));
 
+        Semester semester = SemesterRepository.findById(request.getSemesterId())
+                .orElseThrow(() -> new RuntimeException("El semestre seleccionado no existe."));
 
         Subject subject = Subject.builder()
                 .code(request.getCode())
                 .name(request.getName())
                 .modality(request.getModality())
                 .capacity(request.getCapacity())
-                .recordStatus("ACTIVE")
+                .recordStatus("DRAFT") 
                 .semester(semester)
                 .teacher(teacher)
                 .build();
 
         return subjectRepository.save(subject);
     }
+
+    @Transactional(readOnly = true)
     public List<Subject> getAllSubjects() {
         return subjectRepository.findAll();
     }
