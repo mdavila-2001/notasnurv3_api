@@ -4,6 +4,7 @@ import com.universidad_nur.notasnurv3_api.dto.ManagementRequest;
 import com.universidad_nur.notasnurv3_api.dto.ManagementResponse;
 import com.universidad_nur.notasnurv3_api.entities.Management;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.repositories.ManagementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -44,12 +45,13 @@ public class ManagementService {
     public ManagementResponse getById(Integer id) {
         return managementRepository.findById(id)
                 .map(this::toResponse)
-                .orElseThrow(() -> new RuntimeException("Gestión no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gestión no encontrada con id: " + id));
     }
 
+    @Transactional
     public ManagementResponse update(Integer id, ManagementRequest request) {
         Management management = managementRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Gestión no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gestión no encontrada con id: " + id));
 
         // Validar si el nuevo año ya existe en otra gestión
         if (!management.getYear().equals(request.year()) &&
