@@ -1,11 +1,11 @@
 package com.universidad_nur.notasnurv3_api.dto;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @Builder
@@ -17,6 +17,7 @@ public class SubjectRequest {
     private String name;
     private String modality;
     private Integer capacity;
-    private UUID semesterId;
+    private String management;
+    private Integer semesterId;
     private UUID teacherId;
 }
