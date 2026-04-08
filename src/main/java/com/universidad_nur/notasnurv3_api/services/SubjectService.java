@@ -48,7 +48,6 @@ public class SubjectService {
                 .name(request.getName())
                 .modality(request.getModality())
                 .capacity(request.getCapacity())
-                .management(request.getManagement())
                 .recordStatus("DRAFT")
                 .semester(semester)
                 .teacher(teacher)
@@ -77,7 +76,6 @@ public class SubjectService {
         subject.setName(request.getName());
         subject.setModality(request.getModality());
         subject.setCapacity(request.getCapacity());
-        subject.setManagement(request.getManagement());
 
         if (request.getSemesterId() != null) {
             Semester semester = semesterRepository.findById(request.getSemesterId())

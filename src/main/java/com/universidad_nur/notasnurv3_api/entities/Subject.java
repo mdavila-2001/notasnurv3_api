@@ -31,7 +31,7 @@ import lombok.Setter;
 @Builder
 @SQLDelete(sql = "UPDATE subject SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
-public class Subject {
+public class Subject extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,32 +49,9 @@ public class Subject {
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
-    @Column(name = "management", length = 20)
-    private String management;
-
     @Builder.Default
     @Column(name = "record_status", nullable = false, length = 20)
     private String recordStatus = "DRAFT";
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semester_id", nullable = false)

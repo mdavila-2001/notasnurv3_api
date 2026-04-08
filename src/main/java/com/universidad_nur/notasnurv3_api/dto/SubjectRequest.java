@@ -17,7 +17,6 @@ public class SubjectRequest {
     private String name;
     private String modality;
     private Integer capacity;
-    private String management;
     private Integer semesterId;
     private UUID teacherId;
 }
