@@ -1,0 +1,8 @@
+package com.universidad_nur.notasnurv3_api.exceptions;
+
+public class ResourceNotFoundException extends RuntimeException {
+
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}

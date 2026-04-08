@@ -60,8 +60,8 @@ public class DatabaseSeeder implements CommandLineRunner {
             userRepository.saveAll(List.of(admin, teacher, student));
 
             System.out.println("✅ [SEEDER] 3 usuarios creados exitosamente.");
-            System.out.println("🔑 ADMIN -> Correo: admin@nur.edu | Pass: admin123");
-            System.out.println("🔑 DOCENTE -> Correo: cdocente@nur.edu | Pass: docente123");
+            System.out.println("🔑 ADMIN -> Correo: admin@nur.edu.bo | Pass: admin123");
+            System.out.println("🔑 DOCENTE -> Correo: cdocente@nur.edu.bo | Pass: docente123");
             System.out.println("🔑 ESTUDIANTE -> CI: 88997766 | PIN: 1234");
             System.out.println("=====================================================");
         } else {
