@@ -95,4 +95,16 @@ public class SubjectService {
 
         subjectRepository.deleteById(id);
     }
+
+    @Transactional
+    public void activateSubject(Integer id) {
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+
+        try {
+            subjectRepository.activateSubject(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
+        }
+    }
 }

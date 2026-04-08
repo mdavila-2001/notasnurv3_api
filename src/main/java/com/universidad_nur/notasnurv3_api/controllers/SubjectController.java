@@ -1,11 +1,13 @@
 package com.universidad_nur.notasnurv3_api.controllers;
 
+import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.services.SubjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,5 +40,12 @@ public class SubjectController {
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         subjectService.deleteSubject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<ApiResponse<Void>> activate(@PathVariable Integer id) {
+        subjectService.activateSubject(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Materia activada exitosamente", null));
     }
 }
