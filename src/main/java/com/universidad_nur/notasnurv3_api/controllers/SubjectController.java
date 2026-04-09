@@ -46,6 +46,6 @@ public class SubjectController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ApiResponse<Void>> activate(@PathVariable Integer id) {
         subjectService.activateSubject(id);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Materia activada exitosamente", null));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Materia activada y lista para recibir inscripciones", null));
     }
 }

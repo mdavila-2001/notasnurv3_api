@@ -98,9 +98,9 @@ public class SubjectService {
 
     @Transactional
     public void activateSubject(Integer id) {
-        Subject subject = subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
-
+        if (!subjectRepository.existsById(id)) {
+            throw new RuntimeException("Materia no encontrada.");
+        }
         try {
             subjectRepository.activateSubject(id);
         } catch (Exception e) {
