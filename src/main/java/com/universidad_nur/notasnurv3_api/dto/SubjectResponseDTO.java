@@ -1,7 +1,9 @@
 package com.universidad_nur.notasnurv3_api.dto;
 
-import lombok.*;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder

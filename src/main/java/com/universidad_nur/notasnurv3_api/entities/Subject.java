@@ -12,7 +12,6 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 @SQLDelete(sql = "UPDATE subject SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class Subject extends BaseEntity {
@@ -36,7 +35,7 @@ public class Subject extends BaseEntity {
     @Builder.Default
     @Column(name = "record_status", nullable = false, length = 20)
     private String recordStatus = "DRAFT";
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semester_id", nullable = false)
     private Semester semester;

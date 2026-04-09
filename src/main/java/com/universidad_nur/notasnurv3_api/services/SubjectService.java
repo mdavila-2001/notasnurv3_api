@@ -24,6 +24,7 @@ public class SubjectService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final SemesterRepository semesterRepository;
+
     @Transactional
     public SubjectResponseDTO createSubject(SubjectRequest request) {
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
@@ -52,6 +53,7 @@ public class SubjectService {
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
+
     @Transactional(readOnly = true)
     public List<SubjectResponseDTO> getAllSubjects() {
         return subjectRepository.findAll().stream()
@@ -65,6 +67,7 @@ public class SubjectService {
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada con ID: " + id));
         return mapToResponseDTO(subject);
     }
+
     @Transactional
     public SubjectResponseDTO updateSubject(Integer id, SubjectRequest request) {
         Subject subject = subjectRepository.findById(id)
@@ -82,6 +85,7 @@ public class SubjectService {
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
+
     @Transactional
     public void deleteSubject(Integer id) {
         if (!subjectRepository.existsById(id)) {
@@ -91,15 +95,17 @@ public class SubjectService {
     }
 
     @Transactional
-    public void activateSubject(Integer id) {
+    public SubjectResponseDTO activateSubject(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
-
         try {
             subjectRepository.activateSubject(id);
         } catch (Exception e) {
             throw new RuntimeException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
         }
+        Subject activatedSubject = subjectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada después de activar"));
+        return mapToResponseDTO(activatedSubject);
     }
 
 
@@ -111,9 +117,9 @@ public class SubjectService {
                 .modality(subject.getModality())
                 .capacity(subject.getCapacity())
                 .recordStatus(subject.getRecordStatus())
-                .semesterName(subject.getSemester().getName())
-                .teacherName(subject.getTeacher().getFullName())
-                .management(subject.getSemester().getManagement().getName())
+                .semesterName("Semestre " + subject.getSemester().getNumber())
+                .teacherName(subject.getTeacher().getName() + " " + subject.getTeacher().getLastName())
+                .management(String.valueOf(subject.getSemester().getManagement().getYear()))
                 .build();
     }
-    
+}
