@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubjectResponseDTO {
+public class SubjectResponse {
     private Integer id;
     private String code;
     private String name;

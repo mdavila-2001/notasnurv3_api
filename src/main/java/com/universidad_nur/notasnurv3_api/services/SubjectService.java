@@ -1,11 +1,10 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
-import com.universidad_nur.notasnurv3_api.dto.SubjectResponseDTO;
+import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.entities.Semester;
@@ -26,7 +25,7 @@ public class SubjectService {
     private final SemesterRepository semesterRepository;
 
     @Transactional
-    public SubjectResponseDTO createSubject(SubjectRequest request) {
+    public SubjectResponse createSubject(SubjectRequest request) {
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
             throw new RuntimeException("La capacidad de la materia debe ser mayor a 0.");
         }
@@ -55,21 +54,21 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<SubjectResponseDTO> getAllSubjects() {
+    public List<SubjectResponse> getAllSubjects() {
         return subjectRepository.findAll().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public SubjectResponseDTO getSubjectById(Integer id) {
+    public SubjectResponse getSubjectById(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada con ID: " + id));
         return mapToResponseDTO(subject);
     }
 
     @Transactional
-    public SubjectResponseDTO updateSubject(Integer id, SubjectRequest request) {
+    public SubjectResponse updateSubject(Integer id, SubjectRequest request) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No se puede actualizar: Materia no encontrada."));
 
@@ -95,7 +94,7 @@ public class SubjectService {
     }
 
     @Transactional
-    public SubjectResponseDTO activateSubject(Integer id) {
+    public SubjectResponse activateSubject(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         try {
@@ -109,8 +108,8 @@ public class SubjectService {
     }
 
 
-    private SubjectResponseDTO mapToResponseDTO(Subject subject) {
-        return SubjectResponseDTO.builder()
+    private SubjectResponse mapToResponseDTO(Subject subject) {
+        return SubjectResponse.builder()
                 .id(subject.getId())
                 .code(subject.getCode())
                 .name(subject.getName())

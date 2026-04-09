@@ -2,7 +2,7 @@ package com.universidad_nur.notasnurv3_api.controllers;
 
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
-import com.universidad_nur.notasnurv3_api.dto.SubjectResponseDTO;
+import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
 import com.universidad_nur.notasnurv3_api.services.SubjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,25 +23,25 @@ public class SubjectController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SubjectResponseDTO> create(@RequestBody SubjectRequest request) {
-        SubjectResponseDTO newSubject = subjectService.createSubject(request);
+    public ResponseEntity<SubjectResponse> create(@RequestBody SubjectRequest request) {
+        SubjectResponse newSubject = subjectService.createSubject(request);
         return new ResponseEntity<>(newSubject, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<SubjectResponseDTO>> getAll() {
+    public ResponseEntity<List<SubjectResponse>> getAll() {
         return ResponseEntity.ok(subjectService.getAllSubjects());
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<SubjectResponseDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<SubjectResponse> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(subjectService.getSubjectById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SubjectResponseDTO> update(@PathVariable Integer id, @RequestBody SubjectRequest request) {
+    public ResponseEntity<SubjectResponse> update(@PathVariable Integer id, @RequestBody SubjectRequest request) {
         return ResponseEntity.ok(subjectService.updateSubject(id, request));
     }
 
@@ -55,8 +55,8 @@ public class SubjectController {
 
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ApiResponse<SubjectResponseDTO>> activate(@PathVariable Integer id) {
-        SubjectResponseDTO activatedSubject = subjectService.activateSubject(id);
+    public ResponseEntity<ApiResponse<SubjectResponse>> activate(@PathVariable Integer id) {
+        SubjectResponse activatedSubject = subjectService.activateSubject(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Materia activada exitosamente", activatedSubject));
     }
 }
