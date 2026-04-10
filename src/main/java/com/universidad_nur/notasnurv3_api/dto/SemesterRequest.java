@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record SemesterRequestDTO(
+public record SemesterRequest(
         @NotNull(message = "El número de semestre es obligatorio")
         @Min(value = 1, message = "El número de semestre debe ser 1 o 2")
         @Max(value = 2, message = "El número de semestre debe ser 1 o 2")
@@ -19,6 +19,6 @@ public record SemesterRequestDTO(
         LocalDate endDate,
 
         @NotNull(message = "La gestión es obligatoria")
-        Long managementId
+        Integer managementId
 ) {
 }

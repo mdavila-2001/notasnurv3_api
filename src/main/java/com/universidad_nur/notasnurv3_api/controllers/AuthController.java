@@ -7,6 +7,7 @@ import com.universidad_nur.notasnurv3_api.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,5 +24,12 @@ public class AuthController {
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Login exitoso", tokenData)
         );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Sesión cerrada exitosamente. Hasta pronto.", null));
     }
 }

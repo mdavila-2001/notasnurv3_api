@@ -2,25 +2,23 @@ package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.type.SqlTypes;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "subject")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @SQLDelete(sql = "UPDATE subject SET deleted_at = NOW() WHERE id = ?")
-@SQLRestriction("deleted_at is NULL")
-public class Subject extends BaseEntity{
+@SQLRestriction("deleted_at IS NULL")
+public class Subject extends BaseEntity {
+
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(value = SqlTypes.UUID)
-    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
@@ -34,6 +32,7 @@ public class Subject extends BaseEntity{
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
+    @Builder.Default
     @Column(name = "record_status", nullable = false, length = 20)
     private String recordStatus = "DRAFT";
 
