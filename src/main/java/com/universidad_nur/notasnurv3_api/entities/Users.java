@@ -52,8 +52,9 @@ public class Users extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private String role; //ADMIN, TEACHER, STUDENT
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role; //ADMIN, TEACHER, STUDENT
 
     @Column(nullable = false)
     private String status = "ACTIVE"; //ACTIVE, INACTIVE, GRADUATED
@@ -68,11 +69,10 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (role == null || role.isBlank()) {
+        if (role == null) {
             return List.of();
         }
-
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        return List.of(new SimpleGrantedAuthority(role.authority()));
     }
 
     @Override

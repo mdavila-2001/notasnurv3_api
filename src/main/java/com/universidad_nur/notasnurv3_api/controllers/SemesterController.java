@@ -21,7 +21,7 @@ public class SemesterController {
     private final SemesterService semesterService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<SemesterResponse>> createSemester(@Valid @RequestBody SemesterRequest request) {
         SemesterResponse response = semesterService.createSemester(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -29,14 +29,14 @@ public class SemesterController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<List<SemesterResponse>>> getAllSemesters() {
         List<SemesterResponse> response = semesterService.getAllSemesters();
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestres obtenidos correctamente", response));
     }
 
     @GetMapping("/by-management/{managementId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<List<SemesterResponse>>> getSemestersByManagement(@PathVariable Integer managementId) {
         List<SemesterResponse> response = semesterService.getSemestersByManagement(managementId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestres obtenidos correctamente", response));

@@ -21,7 +21,7 @@ public class ManagementController {
     private final ManagementService managementService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<ManagementResponse>> createManagement(@Valid @RequestBody ManagementRequest request) {
         ManagementResponse response = managementService.createManagement(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -29,7 +29,7 @@ public class ManagementController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<List<ManagementResponse>>> getAllManagements() {
         List<ManagementResponse> response = managementService.getAllManagements();
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestiones obtenidas correctamente", response));
@@ -48,7 +48,7 @@ public class ManagementController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<Void>> deleteManagement(@PathVariable Integer id) {
         managementService.deleteManagement(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestión eliminada correctamente", null));

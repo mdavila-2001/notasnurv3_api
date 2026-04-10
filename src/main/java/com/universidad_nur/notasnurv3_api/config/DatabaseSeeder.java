@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.config;
 
+import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .motherLastName("NUR")
                     .email("admin@nur.edu.bo")
                     .password(passwordEncoder.encode("admin123")) // Contraseña: admin123
-                    .role("ADMIN")
+                    .role(Role.ADMIN)
                     .status("ACTIVE")
                     .build();
 
@@ -40,7 +41,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .motherLastName("Experto")
                     .email("cdocente@nur.edu.bo")
                     .password(passwordEncoder.encode("docente123")) // Contraseña: docente123
-                    .role("TEACHER")
+                    .role(Role.TEACHER)
                     .status("ACTIVE")
                     .build();
 
@@ -52,7 +53,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .motherLastName("Ejemplo")
                     .email("88997766@nur.edu.bo") // Alumno usa email otorgado por administración que viene a ser su CI de estudiante
                     .password(passwordEncoder.encode("1234")) // PIN corto para el estudiante
-                    .role("STUDENT")
+                    .role(Role.STUDENT)
                     .status("ACTIVE")
                     .build();
 

@@ -33,8 +33,8 @@ public class SubjectService {
         Users teacher = userRepository.findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("El usuario con ID " + request.getTeacherId() + " no existe."));
 
-        if (teacher.getRole() == null || !"TEACHER".equalsIgnoreCase(teacher.getRole())) {
-            throw new RuntimeException("El usuario asignado no tiene permisos de docente (Rol incorrecto).");
+        if (teacher.getRole() == null || !teacher.getRole().isTeacher()) {
+            throw new RuntimeException("El usuario asignado no tiene permisos de docente.");
         }
 
         Semester semester = semesterRepository.findById(request.getSemesterId())
@@ -95,7 +95,7 @@ public class SubjectService {
 
     @Transactional
     public SubjectResponse activateSubject(Integer id) {
-        Subject subject = subjectRepository.findById(id)
+        subjectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         try {
             subjectRepository.activateSubject(id);
