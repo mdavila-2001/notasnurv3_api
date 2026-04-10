@@ -24,16 +24,14 @@ public class AuthService {
             user = userRepository.findByEmail(identifier)
                     .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-            Role role = user.getRole();
-            if (role != null && role.isStudent()) {
+            if (user.getRole() == Role.STUDENT) {
                 throw new RuntimeException("Los estudiantes deben ingresar utilizando su CI, no su correo.");
             }
         } else {
             user = userRepository.findByCi(identifier)
                     .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-            Role role = user.getRole();
-            if (role == null || !role.isStudent()) {
+            if (user.getRole() != Role.STUDENT) {
                 throw new RuntimeException("El personal debe ingresar utilizando su correo institucional.");
             }
         }
@@ -46,7 +44,7 @@ public class AuthService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user);;
 
         return new AuthResponse(token, user.getFullName(), user.getRole().name());
     }
