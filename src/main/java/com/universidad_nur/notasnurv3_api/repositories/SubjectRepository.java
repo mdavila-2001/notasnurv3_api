@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
-    @Procedure(name = "pr_activate_subject")
+    @Procedure(procedureName = "pr_activate_subject")
     void activateSubject(Integer p_subject_id);
 }
