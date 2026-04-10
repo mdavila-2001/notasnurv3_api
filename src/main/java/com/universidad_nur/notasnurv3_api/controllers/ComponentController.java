@@ -20,7 +20,7 @@ public class ComponentController {
     private final ComponentService componentService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
+    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<ApiResponse<ComponentResponse>> create(@Valid @RequestBody ComponentRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Componente registrado", componentService.addComponent(request)));
     }
