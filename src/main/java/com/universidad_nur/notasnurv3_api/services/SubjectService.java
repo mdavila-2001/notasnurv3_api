@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
 import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
+import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.entities.Semester;
@@ -33,7 +34,7 @@ public class SubjectService {
         Users teacher = userRepository.findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("El usuario con ID " + request.getTeacherId() + " no existe."));
 
-        if (teacher.getRole() == null || !teacher.getRole().isTeacher()) {
+        if (teacher.getRole() != Role.TEACHER) {
             throw new RuntimeException("El usuario asignado no tiene permisos de docente.");
         }
 
