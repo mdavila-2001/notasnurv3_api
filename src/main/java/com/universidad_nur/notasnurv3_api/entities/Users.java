@@ -72,7 +72,7 @@ public class Users extends BaseEntity implements UserDetails {
         if (role == null) {
             return List.of();
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return List.of(new SimpleGrantedAuthority(role.authority()));
     }
 
     @Override
