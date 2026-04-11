@@ -17,10 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.AssertionErrors.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EvaluationPlanServiceTest {
@@ -59,9 +58,6 @@ class EvaluationPlanServiceTest {
 
         assertNotNull(response);
         assertEquals(100, response.id());
-    }
-
-    private void assertEquals(int i, Integer id) {
     }
 
     @Test
