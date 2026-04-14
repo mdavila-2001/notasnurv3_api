@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public record ComponentRequest(
         @NotBlank(message = "El nombre del componente es obligatorio")
@@ -20,6 +19,6 @@ public record ComponentRequest(
         String description,
 
         @NotNull(message = "El ID del plan de evaluación es obligatorio")
-        UUID planId
+        Integer planId
 ) {
 }

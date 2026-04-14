@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.AuthResponse;
 import com.universidad_nur.notasnurv3_api.dto.LoginRequest;
+import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +24,14 @@ public class AuthService {
             user = userRepository.findByEmail(identifier)
                     .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-            if ("STUDENT".equals(user.getRole())) {
+            if (user.getRole() == Role.STUDENT) {
                 throw new RuntimeException("Los estudiantes deben ingresar utilizando su CI, no su correo.");
             }
         } else {
             user = userRepository.findByCi(identifier)
                     .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
-            if (!"STUDENT".equals(user.getRole())) {
+            if (user.getRole() != Role.STUDENT) {
                 throw new RuntimeException("El personal debe ingresar utilizando su correo institucional.");
             }
         }
@@ -45,7 +46,7 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);;
 
-        return new AuthResponse(token, user.getFullName(), user.getRole());
+        return new AuthResponse(token, user.getFullName(), user.getRole().name());
     }
 
 }
