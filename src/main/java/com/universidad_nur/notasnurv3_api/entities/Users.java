@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.universidad_nur.notasnurv3_api.entities.Role;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,10 +55,13 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Role role; //ADMIN, TEACHER, STUDENT
+    private Role role; 
 
     @Column(nullable = false)
-    private String status = "ACTIVE"; //ACTIVE, INACTIVE, GRADUATED
+    private String status = "ACTIVE"; 
+
+    @Transient 
+    private String facultad;
 
     public String getFullName() {
         return String.format("%s %s %s %s",
