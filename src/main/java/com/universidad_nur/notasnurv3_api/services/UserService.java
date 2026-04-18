@@ -1,11 +1,16 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.universidad_nur.notasnurv3_api.dto.UserRequest;
+import com.universidad_nur.notasnurv3_api.dto.UserResponse;
 import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
@@ -16,35 +21,34 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Set<String> ALLOWED_STATUS = Set.of("ACTIVE", "INACTIVE", "GRADUATED");
+
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-
-    public List<Users> getUsersByRole(String roleName) {
-        try {
-            Role roleEnum = Role.valueOf(roleName.toUpperCase());
-            return userRepository.findByRole(roleEnum);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("El rol proporcionado no es válido: " + roleName);
-        }
+    public List<UserResponse> getUsersByRole(String roleName) {
+        Role roleEnum = parseRole(roleName);
+        return userRepository.findByRole(roleEnum).stream().map(this::toResponse).toList();
     }
-    @Transactional
-    public void createUser(Users user) {
 
-        if (user.getEmail() == null || user.getName() == null || user.getLastName() == null) {
-            throw new RuntimeException("Nombre, Apellido y Email son obligatorios");
+    @Transactional
+    public void createUser(UserRequest user) {
+        validateRequiredUserFields(user);
+        if (isBlank(user.password())) {
+            throw new RuntimeException("La contraseña es obligatoria para crear el usuario");
         }
 
-        String roleStr = (user.getRole() != null) ? user.getRole().name() : Role.STUDENT.name();
+        Role role = user.role() == null ? Role.STUDENT : parseRole(user.role());
 
         userRepository.createNewUser(
-            user.getCi() != null ? user.getCi() : "",
-            user.getName(),
-            user.getMiddleName() != null ? user.getMiddleName() : "",
-            user.getLastName(),
-            user.getMotherLastName() != null ? user.getMotherLastName() : "",
-            user.getEmail(),
-            user.getPassword() != null ? user.getPassword() : "123456",
-            roleStr
+            normalizeOptional(user.ci()),
+            user.name().trim(),
+            normalizeOptional(user.middleName()),
+            user.lastName().trim(),
+            normalizeOptional(user.motherLastName()),
+            user.email().trim().toLowerCase(Locale.ROOT),
+            passwordEncoder.encode(user.password().trim()),
+            role.name()
         );
     }
 
@@ -55,28 +59,86 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
     @Transactional
-    public Users updateStatus(UUID id, String status) {
+    public UserResponse updateStatus(UUID id, String status) {
         Users user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        user.setStatus(status);
-        return userRepository.save(user);
+        user.setStatus(normalizeStatus(status));
+        return toResponse(userRepository.save(user));
     }
 
     @Transactional
-    public Users updateUser(UUID id, Users details) {
+    public UserResponse updateUser(UUID id, UserRequest details) {
+        validateRequiredUserFields(details);
+
         Users user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        
-        user.setName(details.getName());
-        user.setMiddleName(details.getMiddleName()); 
-        user.setLastName(details.getLastName());
-        user.setMotherLastName(details.getMotherLastName()); 
-        user.setEmail(details.getEmail());
-        user.setCi(details.getCi());
-    
-        user.setFacultad(details.getFacultad());
-        
-        return userRepository.save(user);
+
+        user.setName(details.name().trim());
+        user.setMiddleName(normalizeNullable(details.middleName()));
+        user.setLastName(details.lastName().trim());
+        user.setMotherLastName(normalizeNullable(details.motherLastName()));
+        user.setEmail(details.email().trim().toLowerCase(Locale.ROOT));
+        user.setCi(normalizeNullable(details.ci()));
+
+        return toResponse(userRepository.save(user));
+    }
+
+    private Role parseRole(String roleName) {
+        if (isBlank(roleName)) {
+            throw new RuntimeException("El rol es obligatorio");
+        }
+
+        try {
+            return Role.valueOf(roleName.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("El rol proporcionado no es válido: " + roleName);
+        }
+    }
+
+    private String normalizeStatus(String status) {
+        if (isBlank(status)) {
+            throw new RuntimeException("El estado es obligatorio");
+        }
+
+        String normalized = status.trim().toUpperCase(Locale.ROOT);
+        if (!ALLOWED_STATUS.contains(normalized)) {
+            throw new RuntimeException("Estado inválido. Valores permitidos: ACTIVE, INACTIVE, GRADUATED");
+        }
+        return normalized;
+    }
+
+    private void validateRequiredUserFields(UserRequest user) {
+        if (user == null || isBlank(user.email()) || isBlank(user.name()) || isBlank(user.lastName())) {
+            throw new RuntimeException("Nombre, Apellido y Email son obligatorios");
+        }
+    }
+
+    private UserResponse toResponse(Users user) {
+        return new UserResponse(
+            user.getId(),
+            user.getCi(),
+            user.getName(),
+            user.getMiddleName(),
+            user.getLastName(),
+            user.getMotherLastName(),
+            user.getEmail(),
+            user.getRole(),
+            user.getStatus(),
+            user.getFullName()
+        );
+    }
+
+    private String normalizeOptional(String value) {
+        return isBlank(value) ? "" : value.trim();
+    }
+
+    private String normalizeNullable(String value) {
+        return isBlank(value) ? null : value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

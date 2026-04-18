@@ -73,18 +73,11 @@ public class SemesterService {
                 .toList();
     }
 
-
-
-
-    
     public SemesterResponse getById(Integer id) {
         Semester semester = semesterRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado con id: " + id));
         return toResponse(semester);
     }
-
-
-
 
     @Transactional
     public SemesterResponse update(Integer id, SemesterRequest request) {
@@ -125,15 +118,12 @@ public class SemesterService {
         return toResponse(semesterRepository.save(semester));
     }
 
-
-
-
     @Transactional
     public void delete(Integer id) {
         if (!semesterRepository.existsById(id)) {
             throw new ResourceNotFoundException("Semestre no encontrado con id: " + id);
         }
-        semesterRepository.deleteById(id); 
+        semesterRepository.deleteById(id);
     }
 
     private SemesterResponse toResponse(Semester semester) {
