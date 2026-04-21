@@ -36,7 +36,7 @@ public class AuthService {
             }
         }
 
-        if (!"ACTIVE".equals(user.getStatus())) {
+        if (user.getStatus() != com.universidad_nur.notasnurv3_api.entities.UserStatus.ACTIVE) {
             throw new RuntimeException("El usuario se encuentra inactivo en el sistema.");
         }
 

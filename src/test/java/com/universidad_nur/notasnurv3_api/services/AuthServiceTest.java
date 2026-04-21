@@ -4,6 +4,7 @@ import com.universidad_nur.notasnurv3_api.dto.AuthResponse;
 import com.universidad_nur.notasnurv3_api.dto.LoginRequest;
 import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.entities.UserStatus;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class AuthServiceTest {
 
     @Test
     void loginWithTeacherEmailShouldSucceed() {
-        Users teacher = buildUser(Role.TEACHER, "ACTIVE", "teacher@nur.edu.bo", "200", "hashed");
+        Users teacher = buildUser(Role.TEACHER, UserStatus.ACTIVE, "teacher@nur.edu.bo", "200", "hashed");
 
         when(userRepository.findByEmail("teacher@nur.edu.bo")).thenReturn(Optional.of(teacher));
         when(passwordEncoder.matches("secret", "hashed")).thenReturn(true);
@@ -53,29 +54,31 @@ class AuthServiceTest {
 
     @Test
     void studentUsingEmailShouldBeRejected() {
-        Users student = buildUser(Role.STUDENT, "ACTIVE", "student@nur.edu.bo", "88997766", "hashed");
+        Users student = buildUser(Role.STUDENT, UserStatus.ACTIVE, "student@nur.edu.bo", "88997766", "hashed");
 
         when(userRepository.findByEmail("student@nur.edu.bo")).thenReturn(Optional.of(student));
 
+        LoginRequest request = new LoginRequest("student@nur.edu.bo", "secret");
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> authService.login(new LoginRequest("student@nur.edu.bo", "secret")));
+                () -> authService.login(request));
 
         assertEquals("Los estudiantes deben ingresar utilizando su CI, no su correo.", ex.getMessage());
     }
 
     @Test
     void teacherUsingCiShouldBeRejected() {
-        Users teacher = buildUser(Role.TEACHER, "ACTIVE", "teacher@nur.edu.bo", "200", "hashed");
+        Users teacher = buildUser(Role.TEACHER, UserStatus.ACTIVE, "teacher@nur.edu.bo", "200", "hashed");
 
         when(userRepository.findByCi("200")).thenReturn(Optional.of(teacher));
 
+        LoginRequest request = new LoginRequest("200", "secret");
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> authService.login(new LoginRequest("200", "secret")));
+                () -> authService.login(request));
 
         assertEquals("El personal debe ingresar utilizando su correo institucional.", ex.getMessage());
     }
 
-    private Users buildUser(Role role, String status, String email, String ci, String password) {
+    private Users buildUser(Role role, UserStatus status, String email, String ci, String password) {
         return Users.builder()
                 .name("Nombre")
                 .lastName("Apellido")

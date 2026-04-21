@@ -48,6 +48,7 @@ public class SemesterController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SemesterResponse>> update(
             @PathVariable Integer id,
             @Valid @RequestBody SemesterRequest request) {
@@ -55,6 +56,7 @@ public class SemesterController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         semesterService.delete(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestre eliminado correctamente", null));
