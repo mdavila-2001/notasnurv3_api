@@ -10,8 +10,10 @@ import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -26,7 +28,7 @@ public class EvaluationPlanService {
 
     @Transactional(readOnly = true)
     public EvaluationPlanResponse getBySubject(Integer subjectId, String teacherEmail) {
-        Subject subject = validateSubjectAndTeacher(subjectId, teacherEmail);
+        validateSubjectAndTeacher(subjectId, teacherEmail);
 
         EvaluationPlan plan = evaluationPlanRepository.findBySubjectId(subjectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Esta materia aún no tiene un plan de evaluación configurado."));
@@ -50,7 +52,9 @@ public class EvaluationPlanService {
             return toResponse(newPlan);
         } catch (DataIntegrityViolationException e) {
             EvaluationPlan plan = evaluationPlanRepository.findBySubjectId(subjectId)
-                    .orElseThrow(() -> new RuntimeException("Error concurrente al obtener el plan."));
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.CONFLICT,  "No se pudo crear el plan de evaluación por un conflicto de integridad de datos.", e
+                    ));
             return toResponse(plan);
         }
     }

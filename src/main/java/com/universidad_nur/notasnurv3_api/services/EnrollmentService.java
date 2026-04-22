@@ -7,10 +7,10 @@ import com.universidad_nur.notasnurv3_api.dto.StudentResponseDTO;
 import com.universidad_nur.notasnurv3_api.entities.Enrollment;
 import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
-import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
@@ -31,7 +31,7 @@ public class EnrollmentService {
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
         // 1. Verificar Estudiante
         Users student = userRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("El estudiante con ID " + request.getStudentId() + " no fue encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("El estudiante con ID " + request.getStudentId() + " no fue encontrado."));
 
         if (!student.getRole().isStudent()) {
             throw new RuntimeException("El usuario seleccionado no es un estudiante válido.");
@@ -39,7 +39,7 @@ public class EnrollmentService {
 
         // 2. Verificar Materia
         Subject subject = subjectRepository.findById(request.getSubjectId())
-                .orElseThrow(() -> new RuntimeException("La materia con ID " + request.getSubjectId() + " no fue encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.getSubjectId() + " no fue encontrada."));
 
         // Regla 1: Materia no en Draft
         if (subject.getRecordStatus() == RecordStatus.DRAFT) {
@@ -75,6 +75,10 @@ public class EnrollmentService {
     public void withdrawStudent(java.util.UUID enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new RuntimeException("La matrícula no existe o el alumno ya fue dado de baja."));
+
+        if (enrollment.getStatus() != EnrollmentStatus.ACTIVE) {
+            throw new RuntimeException("La matrícula no está activa o el alumno ya fue dado de baja.");
+        }
 
         Subject subject = enrollment.getSubject();
         

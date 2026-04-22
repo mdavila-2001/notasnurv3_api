@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.services;
 import com.universidad_nur.notasnurv3_api.dto.UserRequest;
 import com.universidad_nur.notasnurv3_api.dto.UserResponse;
 import com.universidad_nur.notasnurv3_api.entities.Role;
+import com.universidad_nur.notasnurv3_api.entities.UserStatus;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -134,7 +135,7 @@ class UserServiceTest {
 
         UserResponse response = userService.updateStatus(id, " graduated ");
 
-        assertEquals("GRADUATED", user.getStatus());
+        assertEquals(UserStatus.GRADUATED, user.getStatus());
         assertEquals("GRADUATED", response.status());
         verify(userRepository).save(user);
     }
@@ -156,7 +157,7 @@ class UserServiceTest {
         UUID id = UUID.randomUUID();
         Users existing = buildUser(Role.STUDENT);
         existing.setCi("100");
-        existing.setFacultad("Ingenieria");
+        existing.setFaculty("Ingenieria");
 
         UserRequest request = new UserRequest(
                 "200",
@@ -204,7 +205,7 @@ class UserServiceTest {
         user.setMotherLastName("Lopez");
         user.setEmail("juan@mail.com");
         user.setRole(role);
-        user.setStatus("ACTIVE");
+        user.setStatus(UserStatus.ACTIVE);
         return user;
     }
 }
