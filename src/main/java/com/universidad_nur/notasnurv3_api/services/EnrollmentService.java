@@ -5,6 +5,7 @@ import com.universidad_nur.notasnurv3_api.dto.EnrollmentResponse;
 import com.universidad_nur.notasnurv3_api.dto.MySubjectResponseDTO;
 import com.universidad_nur.notasnurv3_api.dto.StudentResponseDTO;
 import com.universidad_nur.notasnurv3_api.entities.Enrollment;
+import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
@@ -51,7 +52,7 @@ public class EnrollmentService {
         }
 
         // Regla 3: Duplicidad
-        if (enrollmentRepository.existsByStudentIdAndSubjectId(student.getId(), subject.getId())) {
+        if (enrollmentRepository.existsByStudentIdAndSubjectIdAndStatus(student.getId(), subject.getId(), EnrollmentStatus.ACTIVE)) {
             throw new DuplicateResourceException("El estudiante ya se encuentra inscrito en esta materia.");
         }
 
@@ -81,8 +82,9 @@ public class EnrollmentService {
         subject.setCapacity(subject.getCapacity() + 1);
         subjectRepository.save(subject);
 
-        // Dar de baja (Soft Delete)
-        enrollmentRepository.delete(enrollment);
+        // Dar de baja (Cambio de estado en lugar de Soft Delete)
+        enrollment.setStatus(EnrollmentStatus.WITHDRAWN);
+        enrollmentRepository.save(enrollment);
     }
 
     private EnrollmentResponse mapToResponseDTO(Enrollment enrollment) {
@@ -107,7 +109,7 @@ public class EnrollmentService {
             }
         }
 
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
 
         return enrollments.stream().map(enrollment -> StudentResponseDTO.builder()
                 .studentId(enrollment.getStudent().getId())
@@ -119,7 +121,7 @@ public class EnrollmentService {
     }
 
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findByStudentId(currentUser.getId());
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndStatus(currentUser.getId(), EnrollmentStatus.ACTIVE);
 
         return enrollments.stream().map(enrollment -> {
             Subject subject = enrollment.getSubject();
