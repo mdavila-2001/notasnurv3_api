@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -9,7 +10,6 @@ import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.universidad_nur.notasnurv3_api.entities.Role;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,6 +51,7 @@ public class Users extends BaseEntity implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)

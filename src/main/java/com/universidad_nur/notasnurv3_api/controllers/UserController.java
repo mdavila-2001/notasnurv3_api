@@ -1,11 +1,10 @@
 package com.universidad_nur.notasnurv3_api.controllers;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin; 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,47 +14,53 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
+import com.universidad_nur.notasnurv3_api.dto.UserRequest;
+import com.universidad_nur.notasnurv3_api.dto.UserResponse;
+import com.universidad_nur.notasnurv3_api.dto.UserStatusRequest;
 import com.universidad_nur.notasnurv3_api.services.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService userService;
 
     @GetMapping("/role/{roleName}")
-    public ResponseEntity<List<Users>> getByRole(@PathVariable String roleName) {
-        List<Users> users = userService.getUsersByRole(roleName);
-        return ResponseEntity.ok(users);
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getByRole(@PathVariable String roleName) {
+        List<UserResponse> users = userService.getUsersByRole(roleName);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Usuarios obtenidos correctamente", users));
     }
 
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody Users user) {
+    public ResponseEntity<ApiResponse<Void>> create(@Valid @RequestBody UserRequest user) {
         userService.createUser(user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Usuario creado correctamente", null));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Users> update(@PathVariable UUID id, @RequestBody Users user) {
-        Users updatedUser = userService.updateUser(id, user); 
-        return ResponseEntity.ok(updatedUser);
+    public ResponseEntity<ApiResponse<UserResponse>> update(@PathVariable UUID id, @Valid @RequestBody UserRequest user) {
+        UserResponse updatedUser = userService.updateUser(id, user);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Usuario actualizado correctamente", updatedUser));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Usuario eliminado correctamente", null));
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Users> updateStatus(@PathVariable UUID id, @RequestBody Map<String, String> body) {
-        String newStatus = body.get("status");
-        return ResponseEntity.ok(userService.updateStatus(id, newStatus));
+    public ResponseEntity<ApiResponse<UserResponse>> updateStatus(@PathVariable UUID id, @Valid @RequestBody UserStatusRequest body) {
+        UserResponse updatedUser = userService.updateStatus(id, body.status());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Estado actualizado correctamente", updatedUser));
     }
 }
