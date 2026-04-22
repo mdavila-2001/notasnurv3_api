@@ -123,7 +123,7 @@ public class SemesterService {
         if (!semesterRepository.existsById(id)) {
             throw new ResourceNotFoundException("Semestre no encontrado con id: " + id);
         }
-        semesterRepository.deleteById(id); // Esto activará el Soft Delete por el @SQLDelete en la entidad
+        semesterRepository.deleteById(id);
     }
 
     private SemesterResponse toResponse(Semester semester) {

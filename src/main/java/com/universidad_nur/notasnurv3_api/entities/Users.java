@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -50,16 +51,20 @@ public class Users extends BaseEntity implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Role role; //ADMIN, TEACHER, STUDENT
+    private Role role; 
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserStatus status = UserStatus.ACTIVE;
+
+    @Transient
+    private String faculty;
 
     public String getFullName() {
         return String.format("%s %s %s %s",
