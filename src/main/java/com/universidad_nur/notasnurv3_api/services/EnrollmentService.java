@@ -17,6 +17,7 @@ import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -27,7 +28,7 @@ public class EnrollmentService {
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
         // 1. Verificar Estudiante
         Users student = userRepository.findById(request.getStudentId())
@@ -64,6 +65,7 @@ public class EnrollmentService {
         Enrollment enrollment = Enrollment.builder()
                 .student(student)
                 .subject(subject)
+                .status(EnrollmentStatus.ACTIVE)
                 .build();
 
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
@@ -75,6 +77,10 @@ public class EnrollmentService {
     public void withdrawStudent(java.util.UUID enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new RuntimeException("La matrícula no existe o el alumno ya fue dado de baja."));
+
+        if (enrollment.getStatus() == EnrollmentStatus.WITHDRAWN) {
+            return;
+        }
 
         if (enrollment.getStatus() != EnrollmentStatus.ACTIVE) {
             throw new RuntimeException("La matrícula no está activa o el alumno ya fue dado de baja.");
