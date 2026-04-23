@@ -4,21 +4,20 @@ import com.universidad_nur.notasnurv3_api.dto.EnrollmentRequest;
 import com.universidad_nur.notasnurv3_api.dto.EnrollmentResponse;
 import com.universidad_nur.notasnurv3_api.dto.MySubjectResponseDTO;
 import com.universidad_nur.notasnurv3_api.dto.StudentResponseDTO;
-import com.universidad_nur.notasnurv3_api.entities.Enrollment;
-import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
-import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
-import com.universidad_nur.notasnurv3_api.entities.Subject;
-import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.entities.*;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserDegreeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,54 +26,57 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
+    private final UserDegreeRepository userDegreeRepository;
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
         // 1. Verificar Estudiante
-        Users student = userRepository.findById(request.getStudentId())
-                .orElseThrow(() -> new ResourceNotFoundException("El estudiante con ID " + request.getStudentId() + " no fue encontrado."));
+        UserDegree academicRecord = userDegreeRepository.findById(request.userDegreeId())
+                .orElseThrow(() -> new RuntimeException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
 
-        if (!student.getRole().isStudent()) {
-            throw new RuntimeException("El usuario seleccionado no es un estudiante válido.");
+        if (academicRecord.getStatus() != AcademicStatus.ACTIVE) {
+            throw new RuntimeException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
         }
 
         // 2. Verificar Materia
-        Subject subject = subjectRepository.findById(request.getSubjectId())
-                .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.getSubjectId() + " no fue encontrada."));
+        Subject subject = subjectRepository.findById(request.subjectId())
+                .orElseThrow(() -> new RuntimeException("La materia con ID " + request.subjectId() + " no fue encontrada."));
 
-        // Regla 1: Materia no en Draft
         if (subject.getRecordStatus() == RecordStatus.DRAFT) {
             throw new RuntimeException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
         }
 
-        // Regla 2: Cupo disponible
         if (subject.getCapacity() <= 0) {
             throw new RuntimeException("No hay cupos disponibles para esta materia.");
         }
 
-        // Regla 3: Duplicidad
-        if (enrollmentRepository.existsByStudentIdAndSubjectIdAndStatus(student.getId(), subject.getId(), EnrollmentStatus.ACTIVE)) {
-            throw new DuplicateResourceException("El estudiante ya se encuentra inscrito en esta materia.");
+        if (enrollmentRepository.existsByAcademicRecordIdAndSubjectId(academicRecord.getId(), subject.getId())) {
+            throw new DuplicateResourceException("El estudiante ya se encuentra inscrito en esta materia bajo este expediente.");
         }
 
-        // Regla 4: Reducir cupo
         subject.setCapacity(subject.getCapacity() - 1);
         subjectRepository.save(subject);
 
-        // Crear e incribir
+        // Crear e inscribir
         Enrollment enrollment = Enrollment.builder()
-                .student(student)
+                .academicRecord(academicRecord) // <- Cambio crítico
                 .subject(subject)
-                .status(EnrollmentStatus.ACTIVE)
                 .build();
 
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
 
-        return mapToResponseDTO(savedEnrollment);
+        return EnrollmentResponse.builder()
+                .id(savedEnrollment.getId())
+                .studentName(academicRecord.getUser().getFullName())
+                .studentCi(academicRecord.getUser().getCi())
+                .subjectCode(subject.getCode())
+                .subjectName(subject.getName())
+                .enrolledAt(savedEnrollment.getCreatedAt())
+                .build();
     }
 
     @Transactional
-    public void withdrawStudent(java.util.UUID enrollmentId) {
+    public void withdrawStudent(UUID enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new RuntimeException("La matrícula no existe o el alumno ya fue dado de baja."));
 
@@ -88,7 +90,7 @@ public class EnrollmentService {
 
         Subject subject = enrollment.getSubject();
         
-        // Sumar 1 al cupo
+        // Sumarle 1 al cupo
         subject.setCapacity(subject.getCapacity() + 1);
         subjectRepository.save(subject);
 
@@ -98,10 +100,11 @@ public class EnrollmentService {
     }
 
     private EnrollmentResponse mapToResponseDTO(Enrollment enrollment) {
+        Users student = enrollment.getAcademicRecord().getUser();
         return EnrollmentResponse.builder()
                 .id(enrollment.getId())
-                .studentName(enrollment.getStudent().getFullName())
-                .studentCi(enrollment.getStudent().getCi())
+                .studentName(student.getFullName())
+                .studentCi(student.getCi())
                 .subjectCode(enrollment.getSubject().getCode())
                 .subjectName(enrollment.getSubject().getName())
                 .enrolledAt(enrollment.getCreatedAt())
@@ -121,17 +124,19 @@ public class EnrollmentService {
 
         java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
 
-        return enrollments.stream().map(enrollment -> StudentResponseDTO.builder()
-                .studentId(enrollment.getStudent().getId())
-                .fullName(enrollment.getStudent().getFullName())
-                .ci(enrollment.getStudent().getCi())
-                .email(enrollment.getStudent().getEmail())
-                .build()
-        ).toList();
+        return enrollments.stream().map(enrollment -> {
+            Users student = enrollment.getAcademicRecord().getUser();
+            return StudentResponseDTO.builder()
+                    .studentId(student.getId())
+                    .fullName(student.getFullName())
+                    .ci(student.getCi())
+                    .email(student.getEmail())
+                    .build();
+        }).toList();
     }
 
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndStatus(currentUser.getId(), EnrollmentStatus.ACTIVE);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserIdAndStatus(currentUser.getId(), EnrollmentStatus.ACTIVE);
 
         return enrollments.stream().map(enrollment -> {
             Subject subject = enrollment.getSubject();

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "enrollment", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"student_id", "subject_id", "status"})
+        @UniqueConstraint(columnNames = {"user_degree_id", "subject_id", "status"})
 })
 @Getter
 @Setter
@@ -29,8 +29,8 @@ public class Enrollment extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Users student;
+    @JoinColumn(name = "user_degree_id", nullable = false)
+    private UserDegree academicRecord;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
