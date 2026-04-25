@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 
@@ -75,5 +76,51 @@ class EvaluationPlanServiceTest {
 
         assertThrows(UnauthorizedAccessException.class,
                 () -> evaluationPlanService.getBySubject(1, "hacker@nur.edu.bo"));
+    }
+
+    @Test
+    void createForSubject_ShouldReturnExistingPlan_WhenPlanAlreadyExists() {
+        EvaluationPlan existingPlan = new EvaluationPlan();
+        existingPlan.setId(100);
+        existingPlan.setSubject(mockSubject);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.of(existingPlan));
+
+        EvaluationPlanResponse response = evaluationPlanService.createForSubject(1, "profesor@nur.edu.bo");
+
+        assertNotNull(response);
+        assertEquals(100, response.id());
+        verify(evaluationPlanRepository, never()).save(any(EvaluationPlan.class));
+    }
+
+    @Test
+    void createForSubject_ShouldCreatePlan_WhenPlanDoesNotExist() {
+        EvaluationPlan createdPlan = new EvaluationPlan();
+        createdPlan.setId(200);
+        createdPlan.setSubject(mockSubject);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.empty());
+        when(evaluationPlanRepository.save(any(EvaluationPlan.class))).thenReturn(createdPlan);
+
+        EvaluationPlanResponse response = evaluationPlanService.createForSubject(1, "profesor@nur.edu.bo");
+
+        assertNotNull(response);
+        assertEquals(200, response.id());
+        verify(evaluationPlanRepository, times(1)).save(any(EvaluationPlan.class));
+    }
+
+    @Test
+    void createForSubject_ShouldPropagateDataIntegrityViolation_WhenConcurrentConflictOccurs() {
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.empty());
+        when(evaluationPlanRepository.save(any(EvaluationPlan.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate key"));
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> evaluationPlanService.createForSubject(1, "profesor@nur.edu.bo"));
+
+        verify(evaluationPlanRepository, times(1)).save(any(EvaluationPlan.class));
     }
 }
