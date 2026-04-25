@@ -42,7 +42,10 @@ public class EvaluationPlanService {
 
         Optional<EvaluationPlan> existingPlan = evaluationPlanRepository.findBySubjectId(subjectId);
         if (existingPlan.isPresent()) {
-            return toResponse(existingPlan.get());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Esta materia ya tiene un plan de evaluación configurado."
+            );
         }
 
         try {
@@ -51,11 +54,11 @@ public class EvaluationPlanService {
             );
             return toResponse(newPlan);
         } catch (DataIntegrityViolationException e) {
-            EvaluationPlan plan = evaluationPlanRepository.findBySubjectId(subjectId)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.CONFLICT,  "No se pudo crear el plan de evaluación por un conflicto de integridad de datos.", e
-                    ));
-            return toResponse(plan);
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Esta materia ya tiene un plan de evaluación configurado.",
+                    e
+            );
         }
     }
 
