@@ -113,7 +113,7 @@ public class EnrollmentService {
 
     public java.util.List<StudentResponseDTO> getStudentsBySubject(Integer subjectId, Users currentUser) {
         Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new RuntimeException("La materia con ID " + subjectId + " no fue encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + subjectId + " no fue encontrada."));
 
         // Seguridad: Solo Admin o el Profesor de la materia pueden ver
         if (!currentUser.getRole().isAdmin()) {
