@@ -13,8 +13,8 @@ import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserDegreeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
@@ -28,11 +28,14 @@ public class EnrollmentService {
     private final SubjectRepository subjectRepository;
     private final UserDegreeRepository userDegreeRepository;
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    // READ_COMMITTED es suficiente: el @Version en Subject garantiza que dos
+    // transacciones concurrentes no sobreescriban el mismo valor de capacity.
+    // Si hay colisión, Hibernate lanza OptimisticLockingFailureException (→ 409).
+    @Transactional
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
         // 1. Verificar Estudiante
         UserDegree academicRecord = userDegreeRepository.findById(request.userDegreeId())
-                .orElseThrow(() -> new RuntimeException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
+                .orElseThrow(() -> new ResourceNotFoundException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
 
         if (academicRecord.getStatus() != AcademicStatus.ACTIVE) {
             throw new RuntimeException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
@@ -40,7 +43,7 @@ public class EnrollmentService {
 
         // 2. Verificar Materia
         Subject subject = subjectRepository.findById(request.subjectId())
-                .orElseThrow(() -> new RuntimeException("La materia con ID " + request.subjectId() + " no fue encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.subjectId() + " no fue encontrada."));
 
         if (subject.getRecordStatus() == RecordStatus.DRAFT) {
             throw new RuntimeException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
@@ -55,11 +58,16 @@ public class EnrollmentService {
         }
 
         subject.setCapacity(subject.getCapacity() - 1);
-        subjectRepository.save(subject);
+        try {
+            subjectRepository.saveAndFlush(subject); // flush inmediato para detectar colisión antes de crear la matrícula
+        } catch (OptimisticLockingFailureException ex) {
+            throw new OptimisticLockingFailureException(
+                    "No se pudo completar la inscripción por una modificación concurrente en los cupos. Intente nuevamente.", ex);
+        }
 
         // Crear e inscribir
         Enrollment enrollment = Enrollment.builder()
-                .academicRecord(academicRecord) // <- Cambio crítico
+                .academicRecord(academicRecord)
                 .subject(subject)
                 .build();
 
@@ -89,12 +97,15 @@ public class EnrollmentService {
         }
 
         Subject subject = enrollment.getSubject();
-        
-        // Sumarle 1 al cupo
-        subject.setCapacity(subject.getCapacity() + 1);
-        subjectRepository.save(subject);
 
-        // Dar de baja (Cambio de estado en lugar de Soft Delete)
+        subject.setCapacity(subject.getCapacity() + 1);
+        try {
+            subjectRepository.saveAndFlush(subject);
+        } catch (OptimisticLockingFailureException ex) {
+            throw new OptimisticLockingFailureException(
+                    "No se pudo completar la baja por una modificación concurrente en los cupos. Intente nuevamente.", ex);
+        }
+
         enrollment.setStatus(EnrollmentStatus.WITHDRAWN);
         enrollmentRepository.save(enrollment);
     }

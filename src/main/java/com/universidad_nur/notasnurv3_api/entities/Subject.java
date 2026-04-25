@@ -20,6 +20,11 @@ public class Subject extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Optimistic locking: protege el decremento concurrente de capacity.
+    @Version
+    @Column(nullable = false)
+    private Integer version = 0;
+
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
 

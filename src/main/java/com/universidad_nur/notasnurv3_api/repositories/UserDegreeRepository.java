@@ -10,8 +10,8 @@ import java.util.UUID;
 @Repository
 public interface UserDegreeRepository extends JpaRepository<UserDegree, Integer> {
     // Busca si ya existe un expediente para ese usuario en esa carrera
-    boolean existsByUserIdAndDegreeId(UUID userId, Integer degreeId);
+    boolean existsByUser_IdAndDegree_Id(UUID userId, Integer degreeId);
 
-    // Trae todos los expedientes de un usuario (útil para Rodrigo más adelante)
-    List<UserDegree> findByUserId(UUID userId);
+    // Trae todos los expedientes de un usuario
+    List<UserDegree> findByUser_Id(UUID userId);
 }

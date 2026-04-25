@@ -6,7 +6,6 @@ import com.universidad_nur.notasnurv3_api.dto.LoginRequest;
 import com.universidad_nur.notasnurv3_api.dto.UserProfileResponse;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.services.AuthService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +37,9 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getCurrentUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof Users user)) {
-            return ResponseEntity.status(401)
-                    .body(new ApiResponse<>(false, "No autenticado", null));
-        }
-        
+        Users user = (Users) authentication.getPrincipal();
+
         UserProfileResponse profileInfo = new UserProfileResponse(
                 user.getId(),
                 user.getCi(),
@@ -53,7 +48,7 @@ public class AuthController {
                 user.getRole().name(),
                 user.getStatus()
         );
-        
+
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Perfil obtenido exitosamente", profileInfo)
         );
