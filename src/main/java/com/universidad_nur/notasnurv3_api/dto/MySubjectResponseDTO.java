@@ -13,4 +13,5 @@ public class MySubjectResponseDTO {
     private String subjectCode;
     private String subjectName;
     private String teacherName;
+    private String degreeName;
 }

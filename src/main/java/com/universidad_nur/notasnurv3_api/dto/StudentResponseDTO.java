@@ -16,4 +16,5 @@ public class StudentResponseDTO {
     private String fullName;
     private String ci;
     private String email;
+    private String degreeName;
 }
