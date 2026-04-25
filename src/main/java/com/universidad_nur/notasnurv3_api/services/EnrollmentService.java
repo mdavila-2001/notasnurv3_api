@@ -78,7 +78,7 @@ public class EnrollmentService {
     @Transactional
     public void withdrawStudent(UUID enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("La matrícula no existe o el alumno ya fue dado de baja."));
+                .orElseThrow(() -> new ResourceNotFoundException("La matrícula no existe o el alumno ya fue dado de baja."));
 
         if (enrollment.getStatus() == EnrollmentStatus.WITHDRAWN) {
             return;
