@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.dto;
 
+import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ public class SubjectResponse {
     private String name;
     private String modality;
     private Integer capacity;
-    private String recordStatus;
+    private RecordStatus recordStatus;
     private String semesterName;
     private String teacherName;
     private String management;

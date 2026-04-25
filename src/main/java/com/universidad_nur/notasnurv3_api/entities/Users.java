@@ -58,11 +58,13 @@ public class Users extends BaseEntity implements UserDetails {
     @Column(nullable = false, length = 20)
     private Role role; 
 
-    @Column(nullable = false)
-    private String status = "ACTIVE"; 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserStatus status = UserStatus.ACTIVE;
 
-    @Transient 
-    private String facultad;
+    @Transient
+    private String faculty;
 
     public String getFullName() {
         return String.format("%s %s %s %s",
@@ -102,6 +104,6 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return "ACTIVE".equals(this.status);
+        return this.status == UserStatus.ACTIVE;
     }
 }

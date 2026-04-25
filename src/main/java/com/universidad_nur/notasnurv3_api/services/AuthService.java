@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.services;
 import com.universidad_nur.notasnurv3_api.dto.AuthResponse;
 import com.universidad_nur.notasnurv3_api.dto.LoginRequest;
 import com.universidad_nur.notasnurv3_api.entities.Role;
+import com.universidad_nur.notasnurv3_api.entities.UserStatus;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class AuthService {
             }
         }
 
-        if (!"ACTIVE".equals(user.getStatus())) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
             throw new RuntimeException("El usuario se encuentra inactivo en el sistema.");
         }
 

@@ -20,6 +20,11 @@ public class Subject extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Optimistic locking: protege el decremento concurrente de capacity.
+    @Version
+    @Column(nullable = false)
+    private Integer version = 0;
+
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
 
@@ -33,8 +38,9 @@ public class Subject extends BaseEntity {
     private Integer capacity;
 
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     @Column(name = "record_status", nullable = false, length = 20)
-    private String recordStatus = "DRAFT";
+    private RecordStatus recordStatus = RecordStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semester_id", nullable = false)

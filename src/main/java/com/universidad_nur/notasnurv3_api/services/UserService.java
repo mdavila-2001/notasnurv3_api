@@ -2,7 +2,6 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.universidad_nur.notasnurv3_api.dto.UserRequest;
 import com.universidad_nur.notasnurv3_api.dto.UserResponse;
 import com.universidad_nur.notasnurv3_api.entities.Role;
+import com.universidad_nur.notasnurv3_api.entities.UserStatus;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 
@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
 
-    private static final Set<String> ALLOWED_STATUS = Set.of("ACTIVE", "INACTIVE", "GRADUATED");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -97,16 +96,16 @@ public class UserService {
         }
     }
 
-    private String normalizeStatus(String status) {
+    private UserStatus normalizeStatus(String status) {
         if (isBlank(status)) {
             throw new RuntimeException("El estado es obligatorio");
         }
 
-        String normalized = status.trim().toUpperCase(Locale.ROOT);
-        if (!ALLOWED_STATUS.contains(normalized)) {
+        try {
+            return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Estado inválido. Valores permitidos: ACTIVE, INACTIVE, GRADUATED");
         }
-        return normalized;
     }
 
     private void validateRequiredUserFields(UserRequest user) {
@@ -125,7 +124,7 @@ public class UserService {
             user.getMotherLastName(),
             user.getEmail(),
             user.getRole(),
-            user.getStatus(),
+            user.getStatus().name(),
             user.getFullName()
         );
     }

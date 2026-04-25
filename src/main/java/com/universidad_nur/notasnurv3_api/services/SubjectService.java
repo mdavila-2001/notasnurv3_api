@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
 import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
@@ -46,7 +47,7 @@ public class SubjectService {
                 .name(request.getName())
                 .modality(request.getModality())
                 .capacity(request.getCapacity())
-                .recordStatus("DRAFT")
+                .recordStatus(RecordStatus.DRAFT)
                 .semester(semester)
                 .teacher(teacher)
                 .build();
