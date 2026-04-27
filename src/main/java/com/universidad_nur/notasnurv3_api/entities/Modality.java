@@ -29,8 +29,8 @@ public enum Modality {
         return switch (normalized) {
             case "PRESENCIAL", "FACE_TO_FACE" -> FACE_TO_FACE;
             case "SEMIPRESENCIAL", "SEMI_PRESENCIAL", "BLENDED" -> BLENDED;
-            case "VIRTUAL", "ONLINE" -> ONLINE;
-            default -> throw new IllegalArgumentException("Modalidad invalida: " + value);
+            case "VIRTUAL", "ONLINE", "EN_LINEA" -> ONLINE;
+            default -> throw new IllegalArgumentException("Modalidad inválida: " + value);
         };
     }
 }

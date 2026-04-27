@@ -22,12 +22,12 @@ public class FacultyService {
         Faculty faculty = facultyRepository.findById(facultyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Facultad no encontrada con ID: " + facultyId));
 
-        long count = userDegreeRepository.countByDegree_FacultyIdAndStatus(facultyId, AcademicStatus.ACTIVE);
+        long count = userDegreeRepository.countByDegree_Faculty_IdAndStatus(facultyId, AcademicStatus.ACTIVE);
 
-        return new FacultyStatsResponse(
-                faculty.getId(),
-                faculty.getName(),
-                count
-        );
+        return FacultyStatsResponse.builder()
+                .facultyId(faculty.getId())
+                .facultyName(faculty.getName())
+                .activeStudentsCount(count)
+                .build();
     }
 }

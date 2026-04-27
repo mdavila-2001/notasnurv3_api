@@ -1,7 +1,9 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.universidad_nur.notasnurv3_api.dto.FacultyStatsResponse;
 import com.universidad_nur.notasnurv3_api.dto.UserDegreeRequest;
@@ -36,6 +38,7 @@ public class UserDegreeService {
         Long activeCount = userDegreeRepository.countByDegree_Faculty_IdAndStatus(facultyId, AcademicStatus.ACTIVE);
 
         return FacultyStatsResponse.builder()
+                .facultyId(faculty.getId())
                 .facultyName(faculty.getName())
                 .activeStudentsCount(activeCount)
                 .build();
@@ -45,7 +48,8 @@ public class UserDegreeService {
     public UserDegreeResponse openRecord(UserDegreeRequest request) {
         // Retornamos un objeto construido con el builder para evitar errores de constructor vacío
         // Joaquín podrá implementar la lógica real aquí más adelante.
-        throw new UnsupportedOperationException(
+        throw new ResponseStatusException(
+                HttpStatus.NOT_IMPLEMENTED,
                 "La creación de expedientes de usuario aún no está implementada. No se puede abrir un expediente hasta agregar la lógica de persistencia y asignar el estado inicial de activo."
         );
     }
