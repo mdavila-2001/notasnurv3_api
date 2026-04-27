@@ -11,8 +11,7 @@ import com.universidad_nur.notasnurv3_api.dto.DegreeResponse;
 public class DegreeService {
 
     public DegreeResponse create(DegreeRequest request) {
-        // Por ahora lo dejamos vacío para que compile
-        return null;
+        throw new UnsupportedOperationException("Degree creation is not implemented yet");
     }
 
     public List<DegreeResponse> getAll() {
