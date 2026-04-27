@@ -1,7 +1,15 @@
 package com.universidad_nur.notasnurv3_api.dto;
 
-public record FacultyStatsResponse(
-        Integer facultyId,
-        String facultyName,
-        long activeStudentsCount
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class FacultyStatsResponse {
+        private String facultyName;
+        private Long activeStudentsCount;
+}
