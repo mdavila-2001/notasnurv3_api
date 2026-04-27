@@ -31,8 +31,10 @@ public class Subject extends BaseEntity {
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    @Column(name = "modality", nullable = false, length = 50)
-    private String modality;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private Modality modality = Modality.FACE_TO_FACE;
 
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
