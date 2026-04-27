@@ -131,11 +131,12 @@ public class EnrollmentService {
         java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
 
         return enrollments.stream().map(enrollment -> {
-            Users student = enrollment.getAcademicRecord().getUser();
-            
+            UserDegree academicRecord = enrollment.getAcademicRecord();
+            Users student = academicRecord.getUser();
+
             // Navegación US-12: Enrollment -> AcademicRecord (UserDegree) -> Degree -> Name
-            String degreeName = (enrollment.getAcademicRecord() != null && enrollment.getAcademicRecord().getDegree() != null)
-                    ? enrollment.getAcademicRecord().getDegree().getName()
+            String degreeName = (academicRecord != null && academicRecord.getDegree() != null)
+                    ? academicRecord.getDegree().getName()
                     : "Carrera no asignada";
 
             return StudentResponseDTO.builder()
