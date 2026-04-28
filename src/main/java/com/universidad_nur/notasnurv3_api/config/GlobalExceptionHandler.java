@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.config;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidDateRangeException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAccess(UnauthorizedAccessException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse<>(false, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidOperation(InvalidOperationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }
 }

@@ -18,4 +18,7 @@ public interface UserDegreeRepository extends JpaRepository<UserDegree, Integer>
 
     // Misión US-12: Conteo para estadísticas administrativas
     Long countByDegree_Faculty_IdAndStatus(Integer facultyId, AcademicStatus status);
+    
+    // Contar expedientes académicos por carrera (para validar dependencias en delete)
+    long countByDegreeId(Integer degreeId);
 }
