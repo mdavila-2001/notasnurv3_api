@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Locale;
 
 public enum Modality {
     FACE_TO_FACE("FACE_TO_FACE"),
@@ -25,7 +26,7 @@ public enum Modality {
             return null;
         }
 
-        String normalized = value.trim().toUpperCase().replace('-', '_').replace(' ', '_');
+        String normalized = value.trim().toUpperCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
         return switch (normalized) {
             case "PRESENCIAL", "FACE_TO_FACE" -> FACE_TO_FACE;
             case "SEMIPRESENCIAL", "SEMI_PRESENCIAL", "BLENDED" -> BLENDED;

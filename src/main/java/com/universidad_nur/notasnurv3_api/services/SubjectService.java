@@ -124,8 +124,10 @@ public class SubjectService {
                 .modality(subject.getModality())
                 .capacity(subject.getCapacity())
                 .recordStatus(subject.getRecordStatus())
+                .semesterId(subject.getSemester().getId())
                 .semesterName("Semestre " + subject.getSemester().getNumber())
-                .teacherName(subject.getTeacher().getName() + " " + subject.getTeacher().getLastName())
+                .teacherId(subject.getTeacher().getId())
+                .teacherName(subject.getTeacher().getFullName())
                 .management(String.valueOf(subject.getSemester().getManagement().getYear()))
                 .build();
     }

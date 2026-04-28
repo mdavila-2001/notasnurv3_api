@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,7 +20,9 @@ public class SubjectResponse {
     private Modality modality;
     private Integer capacity;
     private RecordStatus recordStatus;
+    private Integer semesterId;
     private String semesterName;
+    private UUID teacherId;
     private String teacherName;
     private String management;
 }
