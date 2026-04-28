@@ -22,7 +22,7 @@ public enum Modality {
 
     @JsonCreator
     public static Modality fromValue(String value) {
-        if (value == null) {
+        if (value == null || value.isBlank()) {
             return null;
         }
 
