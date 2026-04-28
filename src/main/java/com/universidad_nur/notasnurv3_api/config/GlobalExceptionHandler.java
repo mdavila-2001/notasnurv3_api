@@ -19,11 +19,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
+    private String resolveResponseStatusMessage(ResponseStatusException ex) {
+        if (ex.getReason() != null && !ex.getReason().isBlank()) {
+            return ex.getReason();
+        }
+        if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            return ex.getMessage();
+        }
+        return ex.getStatusCode().toString();
+    }
+    
     // 0. Atrapa excepciones con status HTTP específico (como 501 Not Implemented)
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatusCode())
-                .body(new ApiResponse<>(false, ex.getReason(), null));
+                .body(new ApiResponse<>(false, resolveResponseStatusMessage(ex), null));
     }
 
     // 1. Atrapa los errores de validación (como cuando te olvidaste de mandar el correo)
