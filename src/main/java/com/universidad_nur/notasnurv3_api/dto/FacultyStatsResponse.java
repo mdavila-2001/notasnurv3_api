@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FacultyStatsResponse {
-        private String facultyName;
-        private Long activeStudentsCount;
+    private Integer facultyId;
+    private String facultyName;
+    private Long activeStudentsCount;
 }

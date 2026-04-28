@@ -11,12 +11,30 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    
+    private String resolveResponseStatusMessage(ResponseStatusException ex) {
+        if (ex.getReason() != null && !ex.getReason().isBlank()) {
+            return ex.getReason();
+        }
+        if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            return ex.getMessage();
+        }
+        return ex.getStatusCode().toString();
+    }
+    
+    // 0. Atrapa excepciones con status HTTP específico (como 501 Not Implemented)
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(new ApiResponse<>(false, resolveResponseStatusMessage(ex), null));
+    }
 
     // 1. Atrapa los errores de validación (como cuando te olvidaste de mandar el correo)
     @ExceptionHandler(MethodArgumentNotValidException.class)

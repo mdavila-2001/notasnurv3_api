@@ -104,7 +104,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Subject.builder()
                 .code("ISC-301")
                 .name("Ingeniería de Software")
-                .modality("Presencial")
+                .modality(Modality.FACE_TO_FACE)
                 .capacity(30)
                 .recordStatus(RecordStatus.PUBLISHED)
                 .semester(semester)
