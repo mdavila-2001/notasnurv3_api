@@ -3,34 +3,72 @@ package com.universidad_nur.notasnurv3_api.controllers;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.UserDegreeRequest;
 import com.universidad_nur.notasnurv3_api.dto.UserDegreeResponse;
+import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+import com.universidad_nur.notasnurv3_api.services.UserDegreeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.UUID;
-import com.universidad_nur.notasnurv3_api.services.UserDegreeService;
+
 @RestController
 @RequestMapping("/api/user-degrees")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class UserDegreeController {
+
     private final UserDegreeService userDegreeService;
+    private final UserRepository userRepository;
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
-    public ResponseEntity<ApiResponse<UserDegreeResponse>> openAcademicRecord(@Valid @RequestBody UserDegreeRequest request) {
-        // En el servicio, Rodrigo debe setear el status como ACTIVE por defecto
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDegreeResponse>> openRecord(
+            @Valid @RequestBody UserDegreeRequest request
+    ) {
+        UserDegreeResponse response = userDegreeService.openRecord(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(true, "Expediente académico abierto", userDegreeService.openRecord(request)));
+                .body(new ApiResponse<>(true, "Expediente académico abierto", response));
     }
 
-    // Para que el frontend sepa qué expedientes tiene un alumno
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_STUDENT)")
-    public ResponseEntity<ApiResponse<List<UserDegreeResponse>>> getRecordsByUser(@PathVariable UUID userId) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Expedientes obtenidos", userDegreeService.getByUserId(userId)));
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    public ResponseEntity<ApiResponse<List<UserDegreeResponse>>> getByUserId(
+            @PathVariable UUID userId,
+            Authentication authentication
+    ) {
+        boolean isStudent = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STUDENT"));
+
+        if (isStudent) {
+            String loggedUserEmail = authentication.getName();
+
+            Users loggedUser = userRepository.findByEmail(loggedUserEmail)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "Usuario autenticado no encontrado"
+                    ));
+
+            if (!loggedUser.getId().equals(userId)) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "No puedes consultar expedientes de otro usuario"
+                );
+            }
+        }
+
+        List<UserDegreeResponse> response = userDegreeService.getByUserId(userId);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Expedientes obtenidos", response)
+        );
     }
 }

@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.ToString;
 
 import com.universidad_nur.notasnurv3_api.entities.ProfileType;
 import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
@@ -18,6 +19,7 @@ public class UserDegree extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
     private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
