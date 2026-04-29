@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/faculties")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class FacultyController {
+
     private final FacultyService facultyService;
 
     @GetMapping("/{facultyId}/stats")

@@ -24,17 +24,15 @@ public class UserDegreeService {
 
     @Transactional
     public UserDegreeResponse openRecord(UserDegreeRequest request) {
-        // Retornamos un objeto construido con el builder para evitar errores de constructor vacío
-        // Joaquín podrá implementar la lógica real aquí más adelante.
+        // Mantenemos el error controlado que subieron a dev para indicar que no está listo
         throw new ResponseStatusException(
                 HttpStatus.NOT_IMPLEMENTED,
-                "La creación de expedientes de usuario aún no está implementada. No se puede abrir un expediente hasta agregar la lógica de persistencia y asignar el estado inicial de activo."
+                "La creación de expedientes de usuario aún no está implementada. No se puede abrir un expediente hasta agregar la lógica de persistencia."
         );
     }
 
     @Transactional(readOnly = true)
     public List<UserDegreeResponse> getByUserId(UUID userId) {
-        // Buscamos los expedientes en el repositorio y los mapeamos al DTO de respuesta
         List<UserDegree> degrees = userDegreeRepository.findByUser_Id(userId);
         
         return degrees.stream()
@@ -43,8 +41,8 @@ public class UserDegreeService {
     }
 
     private UserDegreeResponse mapToResponse(UserDegree entity) {
+        // Consolidamos las validaciones de ambos mundos
         String degreeName = (entity.getDegree() != null) ? entity.getDegree().getName() : "Sin carrera";
-
         String studentName = (entity.getUser() != null) ? entity.getUser().getFullName() : null;
 
         return UserDegreeResponse.builder()
