@@ -29,46 +29,53 @@ import com.universidad_nur.notasnurv3_api.repositories.UserDegreeRepository;
 class FacultyServiceTest {
 
     @Mock
-    private UserDegreeRepository userDegreeRepository;
-
-    @Mock
     private FacultyRepository facultyRepository;
 
+    @Mock
+    private UserDegreeRepository userDegreeRepository;
+
     @InjectMocks
-    private FacultyService facultyService; // Probamos el nuevo servicio solicitado por Marcelo
+    private FacultyService facultyService;
 
     private Faculty mockFaculty;
 
     @BeforeEach
     void setUp() {
-        mockFaculty = new Faculty();
-        mockFaculty.setId(1);
-        mockFaculty.setName("Facultad de Ingeniería");
+        // Usamos Builder que es como viene en dev
+        mockFaculty = Faculty.builder()
+                .id(1)
+                .name("Facultad de Tecnología")
+                .build();
     }
 
     @Test
-    void shouldReturnCorrectStats_WhenFacultyExists() {
-        // Arrange: Configuramos los mocks para simular éxito
+    void shouldReturnStats_WhenFacultyExists() {
+        // Arrange
         when(facultyRepository.findById(1)).thenReturn(Optional.of(mockFaculty));
-        when(userDegreeRepository.countByDegree_Faculty_IdAndStatus(1, AcademicStatus.ACTIVE)).thenReturn(150L);
+        when(userDegreeRepository.countByDegree_Faculty_IdAndStatus(1, AcademicStatus.ACTIVE)).thenReturn(100L);
 
-        // Act: Ejecutamos el método del nuevo service
+        // Act
         FacultyStatsResponse result = facultyService.getStats(1);
 
-        // Assert: Verificamos que los datos sean correctos
+        // Assert
         assertNotNull(result);
-        assertEquals("Facultad de Ingeniería", result.getFacultyName());
-        assertEquals(150L, result.getActiveStudentsCount());
+        assertEquals(1, result.getFacultyId()); // Validamos el ID que se agregó en dev
+        assertEquals("Facultad de Tecnología", result.getFacultyName());
+        assertEquals(100L, result.getActiveStudentsCount());
+        
+        verify(facultyRepository, times(1)).findById(1);
         verify(userDegreeRepository, times(1)).countByDegree_Faculty_IdAndStatus(1, AcademicStatus.ACTIVE);
     }
 
     @Test
     void shouldThrowException_WhenFacultyDoesNotExist() {
-        // Arrange: Simulamos que la facultad no existe
-        when(facultyRepository.findById(99)).thenReturn(Optional.empty());
+        // Arrange
+        when(facultyRepository.findById(2)).thenReturn(Optional.empty());
 
-        // Act & Assert: Verificamos que lance la excepción ResourceNotFoundException
-        assertThrows(ResourceNotFoundException.class, () -> facultyService.getStats(99));
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> facultyService.getStats(2));
+        
+        verify(facultyRepository, times(1)).findById(2);
         verify(userDegreeRepository, never()).countByDegree_Faculty_IdAndStatus(anyInt(), any());
     }
 }
