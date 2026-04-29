@@ -1,7 +1,8 @@
 package com.universidad_nur.notasnurv3_api.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Locale;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum AcademicStatus {
     ACTIVE,

@@ -41,6 +41,7 @@ class FacultyServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Usamos Builder que es como viene en dev
         mockFaculty = Faculty.builder()
                 .id(1)
                 .name("Facultad de Tecnología")
@@ -58,7 +59,7 @@ class FacultyServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.getFacultyId());
+        assertEquals(1, result.getFacultyId()); // Validamos el ID que se agregó en dev
         assertEquals("Facultad de Tecnología", result.getFacultyName());
         assertEquals(100L, result.getActiveStudentsCount());
         

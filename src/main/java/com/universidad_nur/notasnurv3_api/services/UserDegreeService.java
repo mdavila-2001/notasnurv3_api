@@ -35,7 +35,7 @@ public class UserDegreeService {
     @Transactional(readOnly = true)
     public FacultyStatsResponse getFacultyStats(Integer facultyId) {
         Faculty faculty = facultyRepository.findById(facultyId)
-                .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + facultyId + " no fue encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("La facultad no fue encontrada"));
 
         Long activeCount = userDegreeRepository.countByDegree_Faculty_IdAndStatus(facultyId, AcademicStatus.ACTIVE);
 
@@ -49,14 +49,10 @@ public class UserDegreeService {
     public UserDegreeResponse openRecord(UserDegreeRequest request) {
 
         Users user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "El usuario con ID " + request.userId() + " no fue encontrado."
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         Degree degree = degreeRepository.findById(request.degreeId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "La carrera con ID " + request.degreeId() + " no fue encontrada."
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Carrera no encontrada"));
 
         boolean exists = userDegreeRepository.existsByUser_IdAndDegree_IdAndStatus(
                 request.userId(),
@@ -65,10 +61,8 @@ public class UserDegreeService {
         );
 
         if (exists) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "El usuario ya tiene un expediente activo en esta carrera."
-            );
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El usuario ya tiene un expediente activo en esta carrera.");
         }
 
         UserDegree userDegree = UserDegree.builder()
@@ -85,23 +79,19 @@ public class UserDegreeService {
 
     @Transactional(readOnly = true)
     public List<UserDegreeResponse> getByUserId(UUID userId) {
-        List<UserDegree> degrees = userDegreeRepository.findByUser_Id(userId);
-
-        return degrees.stream()
+        return userDegreeRepository.findByUser_Id(userId)
+                .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     private UserDegreeResponse mapToResponse(UserDegree entity) {
-        String degreeName = (entity.getDegree() != null) ? entity.getDegree().getName() : "Sin carrera";
-        String studentName = (entity.getUser() != null) ? entity.getUser().getFullName() : "Sin estudiante";
-
         return UserDegreeResponse.builder()
                 .id(entity.getId())
-                .studentName(studentName)
-                .degreeName(degreeName)
-                .status(entity.getStatus() != null ? entity.getStatus().toString() : null)
-                .type(entity.getType() != null ? entity.getType().toString() : null)
+                .studentName(entity.getUser().getFullName())
+                .degreeName(entity.getDegree().getName())
+                .type(entity.getType().toString())
+                .status(entity.getStatus().toString())
                 .build();
     }
 }
