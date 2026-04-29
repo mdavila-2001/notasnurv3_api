@@ -19,9 +19,9 @@ public class FacultyController {
     @GetMapping("/{facultyId}/stats")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<FacultyStatsResponse>> getFacultyStats(@PathVariable Integer facultyId) {
-        
+
         FacultyStatsResponse stats = facultyService.getStats(facultyId);
-        
+
         return ResponseEntity.ok(new ApiResponse<>(true, "Estadísticas obtenidas", stats));
     }
 }
