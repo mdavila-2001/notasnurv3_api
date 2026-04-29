@@ -70,8 +70,8 @@ public class Users extends BaseEntity implements UserDetails {
         return String.format("%s %s %s %s",
                 name,
                 (middleName != null ? middleName : ""),
-                lastName,
-                motherLastName).replace("  ", " ").trim();
+                (lastName != null ? lastName : ""),
+                (motherLastName != null ? motherLastName : "")).replace("  ", " ").trim();
     }
 
     @Override

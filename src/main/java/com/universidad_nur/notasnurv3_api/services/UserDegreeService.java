@@ -1,10 +1,5 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.universidad_nur.notasnurv3_api.dto.FacultyStatsResponse;
 import com.universidad_nur.notasnurv3_api.dto.UserDegreeRequest;
 import com.universidad_nur.notasnurv3_api.dto.UserDegreeResponse;
@@ -18,8 +13,11 @@ import com.universidad_nur.notasnurv3_api.repositories.DegreeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.FacultyRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserDegreeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,9 +32,6 @@ public class UserDegreeService {
     private final UserRepository userRepository;
     private final DegreeRepository degreeRepository;
 
-    /**
-     * US-12: Obtener estadísticas de alumnos activos por facultad.
-     */
     @Transactional(readOnly = true)
     public FacultyStatsResponse getFacultyStats(Integer facultyId) {
         Faculty faculty = facultyRepository.findById(facultyId)
@@ -50,9 +45,6 @@ public class UserDegreeService {
                 .build();
     }
 
-    /**
-     * US-11: Apertura de expediente académico.
-     */
     @Transactional
     public UserDegreeResponse openRecord(UserDegreeRequest request) {
 
