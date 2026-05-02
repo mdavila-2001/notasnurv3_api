@@ -22,21 +22,19 @@ public class UserDegree extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-
     private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "degree_id", nullable = false)
-
     private Degree degree;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @ToString.Include
-    private ProfileType type; // STUDENT, TEACHER
+    private ProfileType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @ToString.Include
-    private AcademicStatus status; // ACTIVE, INACTIVE, GRADUATED, DROPPED_OUT
+    private AcademicStatus status;
 }
