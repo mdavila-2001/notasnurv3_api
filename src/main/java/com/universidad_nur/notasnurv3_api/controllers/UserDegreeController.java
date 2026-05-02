@@ -39,36 +39,42 @@ public class UserDegreeController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'TEACHER')")
     public ResponseEntity<ApiResponse<List<UserDegreeResponse>>> getByUserId(
             @PathVariable UUID userId,
             Authentication authentication
     ) {
-        boolean isStudent = authentication.getAuthorities()
-                .stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_STUDENT"));
-
-        if (isStudent) {
-            String loggedUserEmail = authentication.getName();
-
-            Users loggedUser = userRepository.findByEmail(loggedUserEmail)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "Usuario autenticado no encontrado"
-                    ));
-
-            if (!loggedUser.getId().equals(userId)) {
-                throw new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "No puedes consultar expedientes de otro usuario"
-                );
-            }
-        }
+        validateUserCanAccessRecords(userId, authentication);
 
         List<UserDegreeResponse> response = userDegreeService.getByUserId(userId);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expedientes obtenidos", response)
         );
+    }
+
+    private void validateUserCanAccessRecords(UUID requestedUserId, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            return;
+        }
+
+        String loggedUserEmail = authentication.getName();
+
+        Users loggedUser = userRepository.findByEmail(loggedUserEmail)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Usuario autenticado no encontrado"
+                ));
+
+        if (!loggedUser.getId().equals(requestedUserId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No puedes consultar expedientes de otro usuario"
+            );
+        }
     }
 }
