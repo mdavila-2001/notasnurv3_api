@@ -23,6 +23,6 @@ public interface DegreeRepository extends JpaRepository<Degree, Integer> {
     @Query("SELECT d FROM Degree d LEFT JOIN FETCH d.faculty WHERE d.id = :id")
     Optional<Degree> findByIdWithFaculty(Integer id);
     
-    // Contar cuántas inscripciones tiene una carrera
+    // Contar cuántas carreras están asociadas a una facultad
     long countByFacultyId(Integer facultyId);
 }
