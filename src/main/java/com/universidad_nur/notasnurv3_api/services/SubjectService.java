@@ -42,15 +42,19 @@ public class SubjectService {
         Semester semester = semesterRepository.findById(request.getSemesterId())
                 .orElseThrow(() -> new RuntimeException("El semestre seleccionado no existe."));
 
-        Subject subject = Subject.builder()
+        Subject.SubjectBuilder subjectBuilder = Subject.builder()
                 .code(request.getCode())
                 .name(request.getName())
-                .modality(request.getModality())
                 .capacity(request.getCapacity())
                 .recordStatus(RecordStatus.DRAFT)
                 .semester(semester)
-                .teacher(teacher)
-                .build();
+                .teacher(teacher);
+
+        if (request.getModality() != null) {
+            subjectBuilder.modality(request.getModality());
+        }
+
+        Subject subject = subjectBuilder.build();
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
@@ -75,7 +79,9 @@ public class SubjectService {
                 .orElseThrow(() -> new RuntimeException("No se puede actualizar: Materia no encontrada."));
 
         subject.setName(request.getName());
-        subject.setModality(request.getModality());
+        if (request.getModality() != null) {
+            subject.setModality(request.getModality());
+        }
         subject.setCapacity(request.getCapacity());
 
         if (request.getSemesterId() != null) {
@@ -118,8 +124,10 @@ public class SubjectService {
                 .modality(subject.getModality())
                 .capacity(subject.getCapacity())
                 .recordStatus(subject.getRecordStatus())
+                .semesterId(subject.getSemester().getId())
                 .semesterName("Semestre " + subject.getSemester().getNumber())
-                .teacherName(subject.getTeacher().getName() + " " + subject.getTeacher().getLastName())
+                .teacherId(subject.getTeacher().getId())
+                .teacherName(subject.getTeacher().getFullName())
                 .management(String.valueOf(subject.getSemester().getManagement().getYear()))
                 .build();
     }
