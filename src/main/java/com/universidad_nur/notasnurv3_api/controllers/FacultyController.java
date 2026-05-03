@@ -1,6 +1,5 @@
 package com.universidad_nur.notasnurv3_api.controllers;
 
-import com.universidad_nur.notasnurv3_api.config.SecurityAuthorities;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.FacultyRequest;
 import com.universidad_nur.notasnurv3_api.dto.FacultyResponse;

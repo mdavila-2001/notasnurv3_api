@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.repositories;
 import com.universidad_nur.notasnurv3_api.entities.Degree;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface DegreeRepository extends JpaRepository<Degree, Integer> {
     
     // Obtener un grado por ID cargando la facultad
     @Query("SELECT d FROM Degree d LEFT JOIN FETCH d.faculty WHERE d.id = :id")
-    Optional<Degree> findByIdWithFaculty(Integer id);
+    Optional<Degree> findByIdWithFaculty(@Param("id") Integer id);
     
     // Contar cuántas carreras están asociadas a una facultad
     long countByFacultyId(Integer facultyId);

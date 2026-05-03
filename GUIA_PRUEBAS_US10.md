@@ -15,7 +15,7 @@ Content-Type: application/json
 **Body (JSON):**
 ```json
 {
-  "email": "admin@example.com",
+  "email": "admin@nur.edu.bo",
   "password": "admin123"
 }
 ```
@@ -513,8 +513,9 @@ Authorization: Bearer <TU_TOKEN>
 ## 🚀 Para Iniciar el Servidor
 
 ```bash
-cd "c:\Users\joaquin\OneDrive\Desktop\Materias\Taller V\proyecto taller V\notasnurv3_api"
-.\mvnw spring-boot:run
+git clone <URL_DEL_REPOSITORIO>
+cd notasnurv3_api
+./mvnw spring-boot:run
 ```
 
 El servidor estará en `http://localhost:8080`
