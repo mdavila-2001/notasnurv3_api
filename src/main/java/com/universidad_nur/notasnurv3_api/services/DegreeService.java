@@ -108,7 +108,7 @@ public class DegreeService {
     }
 
     /**
-     * Eliminar una carrera (solo si no tiene inscripciones)
+     * Eliminar una carrera (solo si no tiene expedientes académicos asociados)
      */
     @Transactional
     public void delete(Integer id) {

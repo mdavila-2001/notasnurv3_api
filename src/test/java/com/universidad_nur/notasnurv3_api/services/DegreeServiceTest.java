@@ -1,10 +1,12 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +62,60 @@ class DegreeServiceTest {
                 .code("IS")
                 .faculty(mockFaculty)
                 .build();
+    }
+
+    // ── getAll ────────────────────────────────────────────────────────────────
+
+    @Test
+    void getAll_returnsEmptyList_whenNoDegreesExist() {
+        when(degreeRepository.findAllWithFaculty()).thenReturn(List.of());
+
+        List<DegreeResponse> result = degreeService.getAll();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(degreeRepository, times(1)).findAllWithFaculty();
+    }
+
+    @Test
+    void getAll_returnsMappedList_withFacultyInfo() {
+        when(degreeRepository.findAllWithFaculty()).thenReturn(List.of(mockDegree));
+
+        List<DegreeResponse> result = degreeService.getAll();
+
+        assertEquals(1, result.size());
+        DegreeResponse response = result.get(0);
+        assertEquals(1, response.id());
+        assertEquals("Ingeniería de Sistemas", response.name());
+        assertEquals("IS", response.code());
+        assertEquals(1, response.facultyId());
+        assertEquals("Facultad de Tecnología", response.facultyName());
+        verify(degreeRepository, times(1)).findAllWithFaculty();
+    }
+
+    // ── getById ────────────────────────────────────────────────────────────────
+
+    @Test
+    void getById_throwsResourceNotFoundException_whenDegreeDoesNotExist() {
+        when(degreeRepository.findByIdWithFaculty(99)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> degreeService.getById(99));
+        verify(degreeRepository, times(1)).findByIdWithFaculty(99);
+    }
+
+    @Test
+    void getById_returnsMappedResponse_withFacultyInfo() {
+        when(degreeRepository.findByIdWithFaculty(1)).thenReturn(Optional.of(mockDegree));
+
+        DegreeResponse result = degreeService.getById(1);
+
+        assertNotNull(result);
+        assertEquals(1, result.id());
+        assertEquals("Ingeniería de Sistemas", result.name());
+        assertEquals("IS", result.code());
+        assertEquals(1, result.facultyId());
+        assertEquals("Facultad de Tecnología", result.facultyName());
+        verify(degreeRepository, times(1)).findByIdWithFaculty(1);
     }
 
     // ── create ────────────────────────────────────────────────────────────────

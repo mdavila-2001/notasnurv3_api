@@ -1,10 +1,12 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +56,56 @@ class FacultyServiceTest {
                 .name("Facultad de Tecnología")
                 .code("FT")
                 .build();
+    }
+
+    // ── getAll ────────────────────────────────────────────────────────────────
+
+    @Test
+    void getAll_returnsEmptyList_whenNoFacultiesExist() {
+        when(facultyRepository.findAll()).thenReturn(List.of());
+
+        List<FacultyResponse> result = facultyService.getAll();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(facultyRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getAll_returnsMappedList() {
+        when(facultyRepository.findAll()).thenReturn(List.of(mockFaculty));
+
+        List<FacultyResponse> result = facultyService.getAll();
+
+        assertEquals(1, result.size());
+        FacultyResponse response = result.get(0);
+        assertEquals(1, response.id());
+        assertEquals("Facultad de Tecnología", response.name());
+        assertEquals("FT", response.code());
+        verify(facultyRepository, times(1)).findAll();
+    }
+
+    // ── getById ────────────────────────────────────────────────────────────────
+
+    @Test
+    void getById_throwsResourceNotFoundException_whenFacultyDoesNotExist() {
+        when(facultyRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> facultyService.getById(99));
+        verify(facultyRepository, times(1)).findById(99);
+    }
+
+    @Test
+    void getById_returnsMappedResponse() {
+        when(facultyRepository.findById(1)).thenReturn(Optional.of(mockFaculty));
+
+        FacultyResponse result = facultyService.getById(1);
+
+        assertNotNull(result);
+        assertEquals(1, result.id());
+        assertEquals("Facultad de Tecnología", result.name());
+        assertEquals("FT", result.code());
+        verify(facultyRepository, times(1)).findById(1);
     }
 
     // ── getStats ──────────────────────────────────────────────────────────────
