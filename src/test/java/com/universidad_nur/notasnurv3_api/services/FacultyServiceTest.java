@@ -179,7 +179,7 @@ class FacultyServiceTest {
     @Test
     void delete_throwsInvalidOperationException_whenFacultyHasDegrees() {
         when(facultyRepository.findById(1)).thenReturn(Optional.of(mockFaculty));
-        when(degreeRepository.countByFacultyId(1)).thenReturn(3L);
+        when(degreeRepository.countByFaculty_Id(1)).thenReturn(3L);
 
         assertThrows(InvalidOperationException.class, () -> facultyService.delete(1));
         verify(facultyRepository, never()).delete(any());
@@ -188,7 +188,7 @@ class FacultyServiceTest {
     @Test
     void delete_deletesFaculty_whenNoDegreeAssociated() {
         when(facultyRepository.findById(1)).thenReturn(Optional.of(mockFaculty));
-        when(degreeRepository.countByFacultyId(1)).thenReturn(0L);
+        when(degreeRepository.countByFaculty_Id(1)).thenReturn(0L);
 
         facultyService.delete(1);
 

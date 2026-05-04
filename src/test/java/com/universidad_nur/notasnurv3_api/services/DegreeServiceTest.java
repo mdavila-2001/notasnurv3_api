@@ -183,7 +183,7 @@ class DegreeServiceTest {
     @Test
     void delete_throwsInvalidOperationException_whenDegreeHasEnrollments() {
         when(degreeRepository.findById(1)).thenReturn(Optional.of(mockDegree));
-        when(userDegreeRepository.countByDegreeId(1)).thenReturn(5L);
+        when(userDegreeRepository.countByDegree_Id(1)).thenReturn(5L);
 
         assertThrows(InvalidOperationException.class, () -> degreeService.delete(1));
         verify(degreeRepository, never()).delete(any());
@@ -192,7 +192,7 @@ class DegreeServiceTest {
     @Test
     void delete_deletesDegree_whenNoEnrollmentsAssociated() {
         when(degreeRepository.findById(1)).thenReturn(Optional.of(mockDegree));
-        when(userDegreeRepository.countByDegreeId(1)).thenReturn(0L);
+        when(userDegreeRepository.countByDegree_Id(1)).thenReturn(0L);
 
         degreeService.delete(1);
 
