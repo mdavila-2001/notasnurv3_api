@@ -105,7 +105,7 @@ public class FacultyService {
                 .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + id + " no fue encontrada."));
 
         // Validar que no existan carreras asociadas
-        long degreeCount = degreeRepository.countByFacultyId(id);
+        long degreeCount = degreeRepository.countByFaculty_Id(id);
         if (degreeCount > 0) {
             throw new InvalidOperationException("No se puede eliminar la facultad porque tiene " + degreeCount + " carrera(s) asociada(s).");
         }

@@ -13,7 +13,7 @@ public interface UserDegreeRepository extends JpaRepository<UserDegree, Integer>
 
     Long countByDegree_Faculty_IdAndStatus(Integer facultyId, AcademicStatus status);
     // Contar expedientes académicos por carrera (para validar dependencias en delete)
-    long countByDegreeId(Integer degreeId);
+    long countByDegree_Id(Integer degreeId);
 
     boolean existsByUser_IdAndDegree_IdAndStatus(UUID userId, Integer degreeId, AcademicStatus status);
 }

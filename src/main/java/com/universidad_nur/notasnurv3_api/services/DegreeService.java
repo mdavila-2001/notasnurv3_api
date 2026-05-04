@@ -116,7 +116,7 @@ public class DegreeService {
                 .orElseThrow(() -> new ResourceNotFoundException("La carrera con ID " + id + " no fue encontrada."));
 
         // Validar que no existan expedientes académicos (UserDegree) asociados
-        long userDegreeCount = userDegreeRepository.countByDegreeId(id);
+        long userDegreeCount = userDegreeRepository.countByDegree_Id(id);
         if (userDegreeCount > 0) {
             throw new InvalidOperationException("No se puede eliminar la carrera porque tiene " + userDegreeCount + " expediente(s) académico(s) asociado(s).");
         }

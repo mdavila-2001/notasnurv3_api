@@ -25,5 +25,5 @@ public interface DegreeRepository extends JpaRepository<Degree, Integer> {
     Optional<Degree> findByIdWithFaculty(@Param("id") Integer id);
     
     // Contar cuántas carreras están asociadas a una facultad
-    long countByFacultyId(Integer facultyId);
+    long countByFaculty_Id(Integer facultyId);
 }

@@ -27,8 +27,7 @@ Content-Type: application/json
   "message": "Login exitoso",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "userId": "uuid-here",
-    "email": "admin@example.com",
+    "fullName": "Administrador NUR",
     "role": "ADMIN"
   }
 }
@@ -212,6 +211,7 @@ GET http://localhost:8080/api/faculties/1/stats
   "success": true,
   "message": "Estadísticas obtenidas",
   "data": {
+    "facultyId": 1,
     "facultyName": "Facultad de Ingeniería",
     "activeStudentsCount": 150
   }
