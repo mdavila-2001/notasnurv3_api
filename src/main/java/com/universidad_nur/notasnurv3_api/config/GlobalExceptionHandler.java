@@ -70,10 +70,40 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }
 
+    private String resolveDataIntegrityViolationMessage(DataIntegrityViolationException ex) {
+        Throwable cause = ex.getMostSpecificCause();
+        String causeMessage = cause != null && cause.getMessage() != null
+                ? cause.getMessage().toLowerCase()
+                : "";
+
+        if (containsAny(causeMessage, "unique", "duplicate", "duplicado")) {
+            return "Ya existe un registro con los mismos datos únicos.";
+        }
+
+        if (containsAny(causeMessage, "foreign key", "fk_", "constraint fails")) {
+            return "No se puede realizar la operación porque el registro está relacionado con otros datos.";
+        }
+
+        if (containsAny(causeMessage, "not null", "cannot be null", "null value")) {
+            return "No se puede realizar la operación porque faltan datos obligatorios.";
+        }
+
+        return "No se puede realizar la operación por una restricción de integridad de datos.";
+    }
+
+    private boolean containsAny(String source, String... values) {
+        for (String value : values) {
+            if (source.contains(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ApiResponse<>(false, "Ya existe un registro con los mismos datos únicos.", null));
+                .body(new ApiResponse<>(false, resolveDataIntegrityViolationMessage(ex), null));
     }
 
     @ExceptionHandler(InvalidDateRangeException.class)
