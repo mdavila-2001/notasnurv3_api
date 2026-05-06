@@ -3,8 +3,10 @@ package com.universidad_nur.notasnurv3_api.config;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidDateRangeException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -68,6 +70,42 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }
 
+    private String resolveDataIntegrityViolationMessage(DataIntegrityViolationException ex) {
+        Throwable cause = ex.getMostSpecificCause();
+        String causeMessage = cause != null && cause.getMessage() != null
+                ? cause.getMessage().toLowerCase()
+                : "";
+
+        if (containsAny(causeMessage, "unique", "duplicate", "duplicado")) {
+            return "Ya existe un registro con los mismos datos únicos.";
+        }
+
+        if (containsAny(causeMessage, "foreign key", "fk_", "constraint fails")) {
+            return "No se puede realizar la operación porque el registro está relacionado con otros datos.";
+        }
+
+        if (containsAny(causeMessage, "not null", "cannot be null", "null value")) {
+            return "No se puede realizar la operación porque faltan datos obligatorios.";
+        }
+
+        return "No se puede realizar la operación por una restricción de integridad de datos.";
+    }
+
+    private boolean containsAny(String source, String... values) {
+        for (String value : values) {
+            if (source.contains(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse<>(false, resolveDataIntegrityViolationMessage(ex), null));
+    }
+
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidDateRangeException(InvalidDateRangeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -83,6 +121,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAccess(UnauthorizedAccessException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse<>(false, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidOperation(InvalidOperationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }
 }
