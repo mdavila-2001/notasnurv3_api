@@ -13,13 +13,18 @@ import com.universidad_nur.notasnurv3_api.entities.Semester;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SemesterRepository;
-
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubjectService {
 
     private final SubjectRepository subjectRepository;
@@ -27,21 +32,25 @@ public class SubjectService {
     private final SemesterRepository semesterRepository;
     private final GradingService gradingService;
 
+    @Autowired
+    @Lazy
+    private SubjectService self;
+
     @Transactional
     public SubjectResponse createSubject(SubjectRequest request) {
         if (request.getCapacity() == null || request.getCapacity() <= 0) {
-            throw new RuntimeException("La capacidad de la materia debe ser mayor a 0.");
+            throw new InvalidOperationException("La capacidad de la materia debe ser mayor a 0.");
         }
 
         Users teacher = userRepository.findById(request.getTeacherId())
-                .orElseThrow(() -> new RuntimeException("El usuario con ID " + request.getTeacherId() + " no existe."));
+                .orElseThrow(() -> new ResourceNotFoundException("El usuario con ID " + request.getTeacherId() + " no existe."));
 
         if (teacher.getRole() != Role.TEACHER) {
-            throw new RuntimeException("El usuario asignado no tiene permisos de docente.");
+            throw new InvalidOperationException("El usuario asignado no tiene permisos de docente.");
         }
 
         Semester semester = semesterRepository.findById(request.getSemesterId())
-                .orElseThrow(() -> new RuntimeException("El semestre seleccionado no existe."));
+                .orElseThrow(() -> new ResourceNotFoundException("El semestre seleccionado no existe."));
 
         Subject.SubjectBuilder subjectBuilder = Subject.builder()
                 .code(request.getCode())
@@ -65,20 +74,20 @@ public class SubjectService {
     public List<SubjectResponse> getAllSubjects() {
         return subjectRepository.findAll().stream()
                 .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public SubjectResponse getSubjectById(Integer id) {
         Subject subject = subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Materia no encontrada con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada con ID: " + id));
         return mapToResponseDTO(subject);
     }
 
     @Transactional
     public SubjectResponse updateSubject(Integer id, SubjectRequest request) {
         Subject subject = subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se puede actualizar: Materia no encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("No se puede actualizar: Materia no encontrada."));
 
         subject.setName(request.getName());
         if (request.getModality() != null) {
@@ -89,7 +98,7 @@ public class SubjectService {
 
         if (request.getSemesterId() != null) {
             Semester semester = semesterRepository.findById(request.getSemesterId())
-                    .orElseThrow(() -> new RuntimeException("Semestre no encontrado."));
+                    .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado."));
             subject.setSemester(semester);
         }
 
@@ -99,7 +108,7 @@ public class SubjectService {
     @Transactional
     public void deleteSubject(Integer id) {
         if (!subjectRepository.existsById(id)) {
-            throw new RuntimeException("No se puede eliminar: Materia no encontrada.");
+            throw new ResourceNotFoundException("No se puede eliminar: Materia no encontrada.");
         }
         subjectRepository.deleteById(id);
     }
@@ -107,21 +116,21 @@ public class SubjectService {
     @Transactional
     public SubjectResponse activateSubject(Integer id) {
         subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada"));
         try {
             subjectRepository.activateSubject(id);
-        } catch (Exception e) {
-            throw new RuntimeException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
+        } catch (Exception _) {
+            throw new InvalidOperationException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
         }
         Subject activatedSubject = subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Materia no encontrada después de activar"));
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada después de activar"));
         return mapToResponseDTO(activatedSubject);
     }
 
     @Transactional
     public SubjectResponse closeSubject(Integer id) {
         Subject subject = subjectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
 
         gradingService.calculateFinalGradesForSubject(id);
 
@@ -129,7 +138,7 @@ public class SubjectService {
         subjectRepository.save(subject);
 
         // Generar un log definitivo del acta
-        System.out.println("Log de Acta Definitiva: Materia ID " + id + " (" + subject.getName() + ") ha sido CERRADA.");
+        log.info("Log de Acta Definitiva: Materia ID {} ({}) ha sido CERRADA.", id, subject.getName());
 
         return mapToResponseDTO(subject);
     }
@@ -138,10 +147,10 @@ public class SubjectService {
     public void closeSubjectsBySemester(Integer semesterId) {
         List<Subject> subjects = subjectRepository.findAll().stream()
                 .filter(s -> s.getSemester().getId().equals(semesterId) && s.getRecordStatus() != RecordStatus.CLOSED)
-                .collect(Collectors.toList());
+                .toList();
 
         for (Subject subject : subjects) {
-            closeSubject(subject.getId());
+            self.closeSubject(subject.getId());
         }
     }
 

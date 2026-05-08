@@ -2,11 +2,8 @@ package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.type.SqlTypes;
-import java.util.UUID;
 import java.util.List;
 
 @Entity

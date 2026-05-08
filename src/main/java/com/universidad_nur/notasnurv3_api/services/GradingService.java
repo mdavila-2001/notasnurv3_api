@@ -27,8 +27,9 @@ public class GradingService {
 
     @Transactional
     public void calculateFinalGradesForSubject(Integer subjectId) {
-        Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
+        if (!subjectRepository.existsById(subjectId)) {
+            throw new ResourceNotFoundException("Materia no encontrada.");
+        }
 
         EvaluationPlan plan = evaluationPlanRepository.findBySubjectId(subjectId).orElse(null);
         if (plan == null || plan.getComponents() == null || plan.getComponents().isEmpty()) {

@@ -13,6 +13,8 @@ import com.universidad_nur.notasnurv3_api.dto.UserResponse;
 import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.entities.UserStatus;
 import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class UserService {
     public void createUser(UserRequest user) {
         validateRequiredUserFields(user);
         if (isBlank(user.password())) {
-            throw new RuntimeException("La contraseña es obligatoria para crear el usuario");
+            throw new InvalidOperationException("La contraseña es obligatoria para crear el usuario");
         }
 
         Role role = user.role() == null ? Role.STUDENT : parseRole(user.role());
@@ -54,7 +56,7 @@ public class UserService {
     @Transactional
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("No se puede eliminar: Usuario no encontrado");
+            throw new ResourceNotFoundException("No se puede eliminar: Usuario no encontrado");
         }
         userRepository.deleteById(id);
     }
@@ -62,7 +64,7 @@ public class UserService {
     @Transactional
     public UserResponse updateStatus(UUID id, String status) {
         Users user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         user.setStatus(normalizeStatus(status));
         return toResponse(userRepository.save(user));
     }
@@ -72,7 +74,7 @@ public class UserService {
         validateRequiredUserFields(details);
 
         Users user = userRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         user.setName(details.name().trim());
         user.setMiddleName(normalizeNullable(details.middleName()));
@@ -86,31 +88,31 @@ public class UserService {
 
     private Role parseRole(String roleName) {
         if (isBlank(roleName)) {
-            throw new RuntimeException("El rol es obligatorio");
+            throw new InvalidOperationException("El rol es obligatorio");
         }
 
         try {
             return Role.valueOf(roleName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("El rol proporcionado no es válido: " + roleName);
+        } catch (IllegalArgumentException _) {
+            throw new InvalidOperationException("El rol proporcionado no es válido: " + roleName);
         }
     }
 
     private UserStatus normalizeStatus(String status) {
         if (isBlank(status)) {
-            throw new RuntimeException("El estado es obligatorio");
+            throw new InvalidOperationException("El estado es obligatorio");
         }
 
         try {
             return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Estado inválido. Valores permitidos: ACTIVE, INACTIVE, GRADUATED");
+        } catch (IllegalArgumentException _) {
+            throw new InvalidOperationException("Estado inválido. Valores permitidos: ACTIVE, INACTIVE, GRADUATED");
         }
     }
 
     private void validateRequiredUserFields(UserRequest user) {
         if (user == null || isBlank(user.email()) || isBlank(user.name()) || isBlank(user.lastName())) {
-            throw new RuntimeException("Nombre, Apellido y Email son obligatorios");
+            throw new InvalidOperationException("Nombre, Apellido y Email son obligatorios");
         }
     }
 

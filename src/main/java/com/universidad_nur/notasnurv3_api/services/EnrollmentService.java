@@ -23,6 +23,7 @@ import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.UserDegree;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
@@ -48,7 +49,7 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
 
         if (academicRecord.getStatus() != AcademicStatus.ACTIVE) {
-            throw new RuntimeException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
+            throw new InvalidOperationException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
         }
 
         // 2. Verificar Materia
@@ -56,11 +57,11 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.subjectId() + " no fue encontrada."));
 
         if (subject.getRecordStatus() == RecordStatus.DRAFT) {
-            throw new RuntimeException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
+            throw new InvalidOperationException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
         }
 
         if (subject.getCapacity() <= 0) {
-            throw new RuntimeException("No hay cupos disponibles para esta materia.");
+            throw new InvalidOperationException("No hay cupos disponibles para esta materia.");
         }
 
         if (enrollmentRepository.existsByAcademicRecordIdAndSubjectId(academicRecord.getId(), subject.getId())) {
@@ -103,7 +104,7 @@ public class EnrollmentService {
         }
 
         if (enrollment.getStatus() != EnrollmentStatus.ACTIVE) {
-            throw new RuntimeException("La matrícula no está activa o el alumno ya fue dado de baja.");
+            throw new InvalidOperationException("La matrícula no está activa o el alumno ya fue dado de baja.");
         }
 
         Subject subject = enrollment.getSubject();
@@ -127,10 +128,8 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + subjectId + " no fue encontrada."));
 
         // Seguridad: Solo Admin o el Profesor de la materia pueden ver los datos
-        if (!currentUser.getRole().isAdmin()) {
-            if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(currentUser.getId())) {
-                throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
-            }
+        if (!currentUser.getRole().isAdmin() && (subject.getTeacher() == null || !subject.getTeacher().getId().equals(currentUser.getId()))) {
+            throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
         }
 
         java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
@@ -212,18 +211,6 @@ public class EnrollmentService {
                 .studentName(student.getFullName())
                 .degreeName(degreeName)
                 .historyBySemester(history)
-                .build();
-    }
-
-    private EnrollmentResponse mapToResponseDTO(Enrollment enrollment) {
-        Users student = enrollment.getAcademicRecord().getUser();
-        return EnrollmentResponse.builder()
-                .id(enrollment.getId())
-                .studentName(student.getFullName())
-                .studentCi(student.getCi())
-                .subjectCode(enrollment.getSubject().getCode())
-                .subjectName(enrollment.getSubject().getName())
-                .enrolledAt(enrollment.getCreatedAt())
                 .build();
     }
 

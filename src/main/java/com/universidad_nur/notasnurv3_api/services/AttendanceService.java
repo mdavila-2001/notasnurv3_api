@@ -42,39 +42,47 @@ public class AttendanceService {
             throw new UnauthorizedAccessException("No tienes permisos para registrar asistencia en esta materia.");
         }
 
-        for (StudentAttendance record : request.records()) {
-            Enrollment enrollment = enrollmentRepository.findById(record.enrollmentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada para ID: " + record.enrollmentId()));
+        for (StudentAttendance item : request.records()) {
+            processStudentAttendance(item, request.date(), subject.getId(), subject.getModality());
+        }
+    }
 
-            if (!enrollment.getSubject().getId().equals(subject.getId())) {
-                throw new InvalidOperationException("La inscripción " + record.enrollmentId() + " no pertenece a la materia.");
-            }
+    private void processStudentAttendance(StudentAttendance item, LocalDate date, Integer subjectId, Modality modality) {
+        Enrollment enrollment = enrollmentRepository.findById(item.enrollmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada para ID: " + item.enrollmentId()));
 
-            // Upsert Attendance
-            Optional<Attendance> existingOpt = attendanceRepository.findByEnrollmentIdAndDate(record.enrollmentId(), request.date());
-            Attendance attendance;
-            if (existingOpt.isPresent()) {
-                attendance = existingOpt.get();
-                attendance.setStatus(record.status());
-            } else {
-                attendance = Attendance.builder()
-                        .enrollment(enrollment)
-                        .date(request.date())
-                        .status(record.status())
-                        .build();
-            }
-            attendanceRepository.save(attendance);
+        if (!enrollment.getSubject().getId().equals(subjectId)) {
+            throw new InvalidOperationException("La inscripción " + item.enrollmentId() + " no pertenece a la materia.");
+        }
 
-            // Regla del Killer (HU 16)
-            if (record.status() == AttendanceStatus.ABSENT) {
-                long totalAbsences = attendanceRepository.countByEnrollmentIdAndStatus(record.enrollmentId(), AttendanceStatus.ABSENT);
-                int limit = getAbsenceLimit(subject.getModality());
+        // Upsert Attendance
+        Optional<Attendance> existingOpt = attendanceRepository.findByEnrollmentIdAndDate(item.enrollmentId(), date);
+        Attendance attendance;
+        if (existingOpt.isPresent()) {
+            attendance = existingOpt.get();
+            attendance.setStatus(item.status());
+        } else {
+            attendance = Attendance.builder()
+                    .enrollment(enrollment)
+                    .date(date)
+                    .status(item.status())
+                    .build();
+        }
+        attendanceRepository.save(attendance);
 
-                if (totalAbsences > limit && enrollment.getStatus() != EnrollmentStatus.FAILED_BY_ATTENDANCE) {
-                    enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
-                    enrollmentRepository.save(enrollment);
-                }
-            }
+        // Regla del Killer (HU 16)
+        if (item.status() == AttendanceStatus.ABSENT) {
+            checkAbsenceLimit(enrollment, modality);
+        }
+    }
+
+    private void checkAbsenceLimit(Enrollment enrollment, Modality modality) {
+        long totalAbsences = attendanceRepository.countByEnrollmentIdAndStatus(enrollment.getId(), AttendanceStatus.ABSENT);
+        int limit = getAbsenceLimit(modality);
+
+        if (totalAbsences > limit && enrollment.getStatus() != EnrollmentStatus.FAILED_BY_ATTENDANCE) {
+            enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
+            enrollmentRepository.save(enrollment);
         }
     }
 

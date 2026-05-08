@@ -1,7 +1,6 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.entities.SystemSetting;
-import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.repositories.SystemSettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

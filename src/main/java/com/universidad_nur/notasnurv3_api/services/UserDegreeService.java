@@ -82,7 +82,7 @@ public class UserDegreeService {
         return userDegreeRepository.findByUser_Id(userId)
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private UserDegreeResponse mapToResponse(UserDegree entity) {

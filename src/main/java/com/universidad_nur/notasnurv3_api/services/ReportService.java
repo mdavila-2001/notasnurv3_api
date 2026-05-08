@@ -13,6 +13,7 @@ import com.lowagie.text.pdf.PdfWriter;
 import com.universidad_nur.notasnurv3_api.entities.AttendanceStatus;
 import com.universidad_nur.notasnurv3_api.entities.Enrollment;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
@@ -83,15 +84,16 @@ public class ReportService {
 
             document.close();
             return baos.toByteArray();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error al generar PDF de Acta de Notas", ex);
+        } catch (Exception _) {
+            throw new InvalidOperationException("Error al generar PDF de Acta de Notas");
         }
     }
 
     @Transactional(readOnly = true)
     public byte[] generateAsistenciaExcel(Integer subjectId) {
-        Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
+        if (!subjectRepository.existsById(subjectId)) {
+            throw new ResourceNotFoundException("Materia no encontrada.");
+        }
 
         List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
 
@@ -127,8 +129,8 @@ public class ReportService {
 
             workbook.write(baos);
             return baos.toByteArray();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error al generar Excel de Asistencias", ex);
+        } catch (Exception _) {
+            throw new InvalidOperationException("Error al generar Excel de Asistencias");
         }
     }
 
