@@ -40,4 +40,7 @@ public class Enrollment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
+
+    @Column(name = "final_score")
+    private Integer finalScore;
 }

@@ -4,6 +4,7 @@ import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.SemesterRequest;
 import com.universidad_nur.notasnurv3_api.dto.SemesterResponse;
 import com.universidad_nur.notasnurv3_api.services.SemesterService;
+import com.universidad_nur.notasnurv3_api.services.SubjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.List;
 public class SemesterController {
 
     private final SemesterService semesterService;
+    private final SubjectService subjectService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -60,5 +62,12 @@ public class SemesterController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         semesterService.delete(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestre eliminado correctamente", null));
+    }
+
+    @PutMapping("/{id}/close-subjects")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    public ResponseEntity<ApiResponse<Void>> closeSubjectsBySemester(@PathVariable Integer id) {
+        subjectService.closeSubjectsBySemester(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Cierre masivo de materias procesado.", null));
     }
 }

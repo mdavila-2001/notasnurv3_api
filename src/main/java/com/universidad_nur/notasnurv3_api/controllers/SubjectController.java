@@ -59,4 +59,10 @@ public class SubjectController {
         SubjectResponse activatedSubject = subjectService.activateSubject(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Materia activada exitosamente", activatedSubject));
     }
+
+    @PutMapping("/{id}/close")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    public ResponseEntity<ApiResponse<SubjectResponse>> closeSubject(@PathVariable Integer id) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Materia cerrada exitosamente y notas calculadas.", subjectService.closeSubject(id)));
+    }
 }

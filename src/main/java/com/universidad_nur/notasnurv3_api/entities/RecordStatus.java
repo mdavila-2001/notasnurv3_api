@@ -6,7 +6,9 @@ import java.util.Locale;
 public enum RecordStatus {
     DRAFT,
     PUBLISHED,
-    INACTIVE;
+    ACTIVE,
+    INACTIVE,
+    CLOSED;
 
     @JsonCreator
     public static RecordStatus fromValue(String value) {

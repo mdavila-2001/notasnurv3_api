@@ -50,7 +50,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         );
 
         // 3. Usuarios
-        Users admin = userRepository.save(Users.builder()
+        userRepository.save(Users.builder()
             .ci("1000000")
             .name("Admin")
             .lastName("Sistema")
@@ -60,7 +60,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             .role(Role.ADMIN)
             .status(UserStatus.ACTIVE)
             .build());
-
+            
         Users teacher = userRepository.save(Users.builder()
             .ci("2000000")
             .name("Carlos")
@@ -131,7 +131,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .build()
         );
 
-        // Descontar cupo
         subject.setCapacity(subject.getCapacity() - 1);
         subjectRepository.save(subject);
 

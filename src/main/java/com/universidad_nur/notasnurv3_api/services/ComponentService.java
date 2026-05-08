@@ -21,6 +21,10 @@ public class ComponentService {
         EvaluationPlan plan = evaluationPlanRepository.findById(request.planId())
                 .orElseThrow(() -> new RuntimeException("Plan de evaluación no encontrado."));
 
+        if (plan.getSubject().getRecordStatus() != com.universidad_nur.notasnurv3_api.entities.RecordStatus.DRAFT) {
+            throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("No se pueden añadir componentes. El plan de evaluación ya está activo o bloqueado.");
+        }
+
         Component component = Component.builder()
                 .plan(plan)
                 .name(request.name())
@@ -30,5 +34,17 @@ public class ComponentService {
 
         Component saved = componentRepository.save(component);
         return new ComponentResponse(saved.getId(), saved.getName(), saved.getWeight(), saved.getDescription());
+    }
+
+    @Transactional
+    public void deleteComponent(Integer componentId) {
+        Component component = componentRepository.findById(componentId)
+                .orElseThrow(() -> new RuntimeException("Componente no encontrado."));
+
+        if (component.getPlan().getSubject().getRecordStatus() != com.universidad_nur.notasnurv3_api.entities.RecordStatus.DRAFT) {
+            throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("No se pueden borrar componentes. El plan de evaluación ya está activo o bloqueado.");
+        }
+
+        componentRepository.delete(component);
     }
 }

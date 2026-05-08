@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     boolean existsByAcademicRecordIdAndSubjectId(Integer userDegreeId, Integer subjectId);
 
+    List<Enrollment> findBySubjectId(Integer subjectId);
+
     List<Enrollment> findBySubjectIdAndStatus(Integer subjectId, EnrollmentStatus status);
 
     List<Enrollment> findByAcademicRecord_UserIdAndStatus(UUID studentId, EnrollmentStatus status);

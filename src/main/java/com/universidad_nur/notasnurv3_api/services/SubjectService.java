@@ -25,6 +25,7 @@ public class SubjectService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final SemesterRepository semesterRepository;
+    private final GradingService gradingService;
 
     @Transactional
     public SubjectResponse createSubject(SubjectRequest request) {
@@ -115,6 +116,32 @@ public class SubjectService {
         return mapToResponseDTO(activatedSubject);
     }
 
+    @Transactional
+    public SubjectResponse closeSubject(Integer id) {
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada."));
+
+        gradingService.calculateFinalGradesForSubject(id);
+
+        subject.setRecordStatus(RecordStatus.CLOSED);
+        subjectRepository.save(subject);
+
+        // Generar un log definitivo del acta
+        System.out.println("Log de Acta Definitiva: Materia ID " + id + " (" + subject.getName() + ") ha sido CERRADA.");
+
+        return mapToResponseDTO(subject);
+    }
+
+    @Transactional
+    public void closeSubjectsBySemester(Integer semesterId) {
+        List<Subject> subjects = subjectRepository.findAll().stream()
+                .filter(s -> s.getSemester().getId().equals(semesterId) && s.getRecordStatus() != RecordStatus.CLOSED)
+                .collect(Collectors.toList());
+
+        for (Subject subject : subjects) {
+            closeSubject(subject.getId());
+        }
+    }
 
     private SubjectResponse mapToResponseDTO(Subject subject) {
         return SubjectResponse.builder()

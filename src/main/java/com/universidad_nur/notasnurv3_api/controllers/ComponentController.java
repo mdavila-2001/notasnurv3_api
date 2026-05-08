@@ -24,4 +24,11 @@ public class ComponentController {
     public ResponseEntity<ApiResponse<ComponentResponse>> create(@Valid @RequestBody ComponentRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Componente registrado", componentService.addComponent(request)));
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<ApiResponse<Void>> delete(@org.springframework.web.bind.annotation.PathVariable Integer id) {
+        componentService.deleteComponent(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Componente eliminado", null));
+    }
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,6 +61,29 @@ public class EvaluationPlanService {
                     e
             );
         }
+    }
+
+    @Transactional
+    public void activatePlan(Integer subjectId, String teacherEmail) {
+        Subject subject = validateSubjectAndTeacher(subjectId, teacherEmail);
+
+        EvaluationPlan plan = evaluationPlanRepository.findBySubjectId(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Esta materia aún no tiene un plan de evaluación configurado."));
+
+        if (plan.getComponents() == null || plan.getComponents().isEmpty()) {
+            throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("No se puede activar un plan de evaluación sin componentes.");
+        }
+
+        BigDecimal totalWeight = plan.getComponents().stream()
+                .map(com.universidad_nur.notasnurv3_api.entities.Component::getWeight)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalWeight.compareTo(new BigDecimal("100.00")) != 0 && totalWeight.compareTo(new BigDecimal("100")) != 0) {
+            throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("La suma de las ponderaciones debe ser exactamente 100.");
+        }
+
+        subject.setRecordStatus(com.universidad_nur.notasnurv3_api.entities.RecordStatus.ACTIVE);
+        subjectRepository.save(subject);
     }
 
     private Subject validateSubjectAndTeacher(Integer subjectId, String teacherEmail) {
