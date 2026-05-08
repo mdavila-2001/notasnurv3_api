@@ -1,0 +1,59 @@
+package com.universidad_nur.notasnurv3_api.services;
+
+import com.universidad_nur.notasnurv3_api.entities.SystemSetting;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
+import com.universidad_nur.notasnurv3_api.repositories.SystemSettingRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class SystemSettingService {
+
+    private final SystemSettingRepository systemSettingRepository;
+
+    @Transactional(readOnly = true)
+    public List<SystemSetting> getAllSettings() {
+        return systemSettingRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public String getSettingValue(String key, String defaultValue) {
+        Optional<SystemSetting> setting = systemSettingRepository.findBySettingKey(key);
+        return setting.map(SystemSetting::getSettingValue).orElse(defaultValue);
+    }
+
+    @Transactional(readOnly = true)
+    public int getIntValue(String key, int defaultValue) {
+        String valueStr = getSettingValue(key, String.valueOf(defaultValue));
+        try {
+            return Integer.parseInt(valueStr);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    @Transactional
+    public SystemSetting updateSetting(String key, String value, String description) {
+        Optional<SystemSetting> existingOpt = systemSettingRepository.findBySettingKey(key);
+        SystemSetting setting;
+        if (existingOpt.isPresent()) {
+            setting = existingOpt.get();
+            setting.setSettingValue(value);
+            if (description != null) {
+                setting.setDescription(description);
+            }
+        } else {
+            setting = SystemSetting.builder()
+                    .settingKey(key)
+                    .settingValue(value)
+                    .description(description)
+                    .build();
+        }
+        return systemSettingRepository.save(setting);
+    }
+}

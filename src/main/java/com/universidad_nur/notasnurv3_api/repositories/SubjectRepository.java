@@ -10,4 +10,8 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
     @Procedure(procedureName = "pr_activate_subject")
     void activateSubject(Integer p_subject_id);
+
+    long countByRecordStatus(com.universidad_nur.notasnurv3_api.entities.RecordStatus recordStatus);
+
+    java.util.List<Subject> findBySemesterId(Integer semesterId);
 }

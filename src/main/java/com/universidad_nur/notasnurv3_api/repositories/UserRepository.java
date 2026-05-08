@@ -16,6 +16,7 @@ import com.universidad_nur.notasnurv3_api.entities.Users;
 public interface UserRepository extends JpaRepository<Users, UUID> {
 
     List<Users> findByRole(Role role);
+    long countByRole(Role role);
 
 @Procedure(procedureName = "pr_create_user")
 void createNewUser(

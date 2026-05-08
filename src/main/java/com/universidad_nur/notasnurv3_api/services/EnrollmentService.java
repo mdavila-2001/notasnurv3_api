@@ -1,6 +1,9 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -8,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.universidad_nur.notasnurv3_api.dto.EnrollmentRequest;
 import com.universidad_nur.notasnurv3_api.dto.EnrollmentResponse;
+import com.universidad_nur.notasnurv3_api.dto.KardexResponse;
+import com.universidad_nur.notasnurv3_api.dto.KardexResponse.SubjectGradeResponse;
 import com.universidad_nur.notasnurv3_api.dto.MySubjectResponseDTO;
 import com.universidad_nur.notasnurv3_api.dto.StudentResponseDTO;
 import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
@@ -171,6 +176,43 @@ public class EnrollmentService {
                     .degreeName(degreeName)
                     .build();
         }).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public KardexResponse getMyKardex(String userEmail) {
+        Users student = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado."));
+
+        List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(student.getId());
+
+        if (enrollments.isEmpty()) {
+            return KardexResponse.builder()
+                    .studentName(student.getFullName())
+                    .historyBySemester(Map.of())
+                    .build();
+        }
+
+        String degreeName = enrollments.get(0).getAcademicRecord().getDegree().getName();
+
+        Map<String, List<SubjectGradeResponse>> history = enrollments.stream()
+                .collect(Collectors.groupingBy(
+                        e -> "Gestión " + e.getSubject().getSemester().getManagement().getYear() + " - Semestre " + e.getSubject().getSemester().getNumber(),
+                        Collectors.mapping(
+                                e -> SubjectGradeResponse.builder()
+                                        .subjectCode(e.getSubject().getCode())
+                                        .subjectName(e.getSubject().getName())
+                                        .finalScore(e.getFinalScore())
+                                        .status(e.getStatus())
+                                        .build(),
+                                Collectors.toList()
+                        )
+                ));
+
+        return KardexResponse.builder()
+                .studentName(student.getFullName())
+                .degreeName(degreeName)
+                .historyBySemester(history)
+                .build();
     }
 
     private EnrollmentResponse mapToResponseDTO(Enrollment enrollment) {

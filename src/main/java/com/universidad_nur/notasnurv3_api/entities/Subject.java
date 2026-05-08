@@ -50,4 +50,7 @@ public class Subject extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private Users teacher;
+
+    @Column(name = "category", length = 50)
+    private String category;
 }

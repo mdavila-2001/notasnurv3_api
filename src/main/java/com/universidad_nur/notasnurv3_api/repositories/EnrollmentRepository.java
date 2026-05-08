@@ -17,4 +17,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
     List<Enrollment> findBySubjectIdAndStatus(Integer subjectId, EnrollmentStatus status);
 
     List<Enrollment> findByAcademicRecord_UserIdAndStatus(UUID studentId, EnrollmentStatus status);
+
+    List<Enrollment> findByAcademicRecord_UserId(UUID studentId);
+
+    List<Enrollment> findBySubject_Semester_ManagementId(Integer managementId);
 }

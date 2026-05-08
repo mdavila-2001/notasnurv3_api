@@ -49,7 +49,8 @@ public class SubjectService {
                 .capacity(request.getCapacity())
                 .recordStatus(RecordStatus.DRAFT)
                 .semester(semester)
-                .teacher(teacher);
+                .teacher(teacher)
+                .category(request.getCategory());
 
         if (request.getModality() != null) {
             subjectBuilder.modality(request.getModality());
@@ -84,6 +85,7 @@ public class SubjectService {
             subject.setModality(request.getModality());
         }
         subject.setCapacity(request.getCapacity());
+        subject.setCategory(request.getCategory());
 
         if (request.getSemesterId() != null) {
             Semester semester = semesterRepository.findById(request.getSemesterId())
@@ -156,6 +158,7 @@ public class SubjectService {
                 .teacherId(subject.getTeacher().getId())
                 .teacherName(subject.getTeacher().getFullName())
                 .management(String.valueOf(subject.getSemester().getManagement().getYear()))
+                .category(subject.getCategory())
                 .build();
     }
 }

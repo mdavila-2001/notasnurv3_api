@@ -23,6 +23,7 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final SubjectRepository subjectRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final SystemSettingService systemSettingService;
 
     @Transactional
     public void saveBulkAttendance(AttendanceBulkRequest request, String teacherEmail) {
@@ -79,9 +80,9 @@ public class AttendanceService {
 
     private int getAbsenceLimit(Modality modality) {
         return switch (modality) {
-            case FACE_TO_FACE -> 5;
-            case BLENDED -> 3;
-            case ONLINE -> 999; // Or some large number/no limit, not specified in requirement
+            case FACE_TO_FACE -> systemSettingService.getIntValue("ABSENCE_LIMIT_FACE_TO_FACE", 5);
+            case BLENDED -> systemSettingService.getIntValue("ABSENCE_LIMIT_BLENDED", 3);
+            case ONLINE -> systemSettingService.getIntValue("ABSENCE_LIMIT_ONLINE", 999);
         };
     }
 }

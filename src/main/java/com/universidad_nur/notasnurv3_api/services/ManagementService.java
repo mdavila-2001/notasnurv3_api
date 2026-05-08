@@ -2,9 +2,12 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.ManagementRequest;
 import com.universidad_nur.notasnurv3_api.dto.ManagementResponse;
-import com.universidad_nur.notasnurv3_api.entities.Management;
+import com.universidad_nur.notasnurv3_api.dto.ManagementStatsResponse;
+import com.universidad_nur.notasnurv3_api.entities.*;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
+import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
+import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.ManagementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -18,6 +21,9 @@ import java.util.List;
 public class ManagementService {
 
     private final ManagementRepository managementRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final SystemSettingService systemSettingService;
 
     @Transactional
     public ManagementResponse createManagement(ManagementRequest request) {
@@ -73,6 +79,51 @@ public class ManagementService {
         }
 
         managementRepository.delete(management);
+    }
+
+    @Transactional(readOnly = true)
+    public ManagementStatsResponse getStats(Integer managementId) {
+        Management management = managementRepository.findById(managementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Gestión no encontrada."));
+
+        List<Enrollment> enrollments = enrollmentRepository.findBySubject_Semester_ManagementId(managementId);
+
+        long totalEnrollments = enrollments.size();
+        long passedEnrollments = enrollments.stream().filter(e -> e.getStatus() == EnrollmentStatus.PASSED).count();
+        long failedEnrollments = enrollments.stream().filter(e -> e.getStatus() == EnrollmentStatus.FAILED || e.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE).count();
+
+        double passRatePercentage = totalEnrollments > 0 ? ((double) passedEnrollments / totalEnrollments) * 100 : 0.0;
+
+        // Calcular alumnos en riesgo: aquellos cuyas faltas actuales están exactamente a 1 del límite
+        int limitFaceToFace = systemSettingService.getIntValue("ABSENCE_LIMIT_FACE_TO_FACE", 5);
+        int limitBlended = systemSettingService.getIntValue("ABSENCE_LIMIT_BLENDED", 3);
+        int limitOnline = systemSettingService.getIntValue("ABSENCE_LIMIT_ONLINE", 999);
+
+        long studentsAtRisk = 0;
+        for (Enrollment enrollment : enrollments) {
+            if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
+                long absences = attendanceRepository.countByEnrollmentIdAndStatus(enrollment.getId(), AttendanceStatus.ABSENT);
+                int limit = switch (enrollment.getSubject().getModality()) {
+                    case FACE_TO_FACE -> limitFaceToFace;
+                    case BLENDED -> limitBlended;
+                    case ONLINE -> limitOnline;
+                };
+
+                if (absences == limit - 1) {
+                    studentsAtRisk++;
+                }
+            }
+        }
+
+        return ManagementStatsResponse.builder()
+                .managementId(management.getId())
+                .managementYear(String.valueOf(management.getYear()))
+                .totalEnrollments(totalEnrollments)
+                .passedEnrollments(passedEnrollments)
+                .failedEnrollments(failedEnrollments)
+                .passRatePercentage(passRatePercentage)
+                .studentsAtRisk(studentsAtRisk)
+                .build();
     }
 
     private ManagementResponse toResponse(Management management) {
