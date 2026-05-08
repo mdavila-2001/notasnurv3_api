@@ -41,7 +41,7 @@ public class GradingService {
         List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
 
         for (Enrollment enrollment : enrollments) {
-            List<Grade> grades = gradeRepository.findByEnrollmentId(enrollment.getId());
+            List<Grade> grades = enrollment.getGrades();
 
             if (grades.size() < requiredGradesCount) {
                 throw new InvalidOperationException("Faltan notas para el alumno con inscripción ID: " + enrollment.getId() + ". No se puede procesar la nota final.");

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class SemesterControllerIntegrationTest {
 
     @Autowired
@@ -171,15 +173,15 @@ class SemesterControllerIntegrationTest {
         verify(semesterRepositorySpy, times(1)).deleteById(semester.getId());
 
         mockMvc.perform(get("/api/semesters/{id}", semester.getId()))
-                .andExpect(status().isBadRequest())
+            .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Semestre no encontrado con id: " + semester.getId()));
     }
 
     @Test
-    void getById_debeRetornarBadRequest_cuandoIdNoExiste() throws Exception {
+    void getById_debeRetornarNotFound_cuandoIdNoExiste() throws Exception {
         mockMvc.perform(get("/api/semesters/{id}", 999999))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Semestre no encontrado con id: 999999"));
     }

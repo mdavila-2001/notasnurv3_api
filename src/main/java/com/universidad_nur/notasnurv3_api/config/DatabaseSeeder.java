@@ -3,14 +3,18 @@ package com.universidad_nur.notasnurv3_api.config;
 import com.universidad_nur.notasnurv3_api.entities.*;
 import com.universidad_nur.notasnurv3_api.repositories.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
+@Slf4j
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -26,11 +30,11 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.count() > 0) {
-            System.out.println("⚡ [SEEDER] Base de datos ya poblada. Omitiendo siembra.");
+            log.info("Base de datos ya poblada. Omitiendo siembra.");
             return;
         }
 
-        System.out.println("[SEEDER] Iniciando siembra de datos completa...");
+        log.info("Iniciando siembra de datos completa...");
 
         // 1. Facultad
         Faculty faculty = facultyRepository.save(
@@ -134,15 +138,15 @@ public class DatabaseSeeder implements CommandLineRunner {
         subject.setCapacity(subject.getCapacity() - 1);
         subjectRepository.save(subject);
 
-        System.out.println("✅ [SEEDER] Datos iniciales creados exitosamente.");
-        System.out.println("=====================================================");
-        System.out.println("🏛️  Facultad : " + faculty.getName());
-        System.out.println("🎓  Carrera  : " + degree.getName());
-        System.out.println("📚  Materia  : " + subject.getName());
-        System.out.println("-----------------------------------------------------");
-        System.out.println("🔑 ADMIN     → email: admin@nur.edu.bo | pass: admin123");
-        System.out.println("🔑 DOCENTE   → email: cdocente@nur.edu.bo | pass: docente123");
-        System.out.println("🔑 ESTUDIANTE→ CI: 88997766 | PIN: 1234");
-        System.out.println("=====================================================");
+        log.info("✅ [SEEDER] Datos iniciales creados exitosamente.");
+        log.info("=====================================================");
+        log.info("🏛️  Facultad : " + faculty.getName());
+        log.info("🎓  Carrera  : " + degree.getName());
+        log.info("📚  Materia  : " + subject.getName());
+        log.info("-----------------------------------------------------");
+        log.info("🔑 ADMIN     → email: admin@nur.edu.bo | pass: admin123");
+        log.info("🔑 DOCENTE   → email: cdocente@nur.edu.bo | pass: docente123");
+        log.info("🔑 ESTUDIANTE→ CI: 88997766 | PIN: 1234");
+        log.info("=====================================================");
     }
 }

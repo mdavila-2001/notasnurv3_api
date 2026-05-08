@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,7 +19,6 @@ public class DashboardService {
     private final EnrollmentRepository enrollmentRepository;
     private final SubjectRepository subjectRepository;
     private final AttendanceRepository attendanceRepository;
-    private final GradeRepository gradeRepository;
     private final ManagementRepository managementRepository;
     private final UserRepository userRepository;
     private final SystemSettingService systemSettingService;
@@ -25,8 +26,7 @@ public class DashboardService {
     @Transactional(readOnly = true)
     public DashboardAdminDTO getAdminDashboard() {
         long totalStudents = userRepository.countByRole(Role.STUDENT);
-        long totalSubjectsWithoutTeacher = subjectRepository.findAll().stream()
-                .filter(s -> s.getTeacher() == null).count();
+        long totalSubjectsWithoutTeacher = subjectRepository.countByTeacherIsNull();
         long totalOpenActas = subjectRepository.countByRecordStatus(RecordStatus.ACTIVE);
 
         List<Management> allManagements = managementRepository.findAll();
@@ -42,7 +42,7 @@ public class DashboardService {
                             .studentCount(enrollments.size())
                             .passRate(passRate)
                             .build();
-                }).collect(Collectors.toList());
+                }).toList();
 
         // Para simplificar, tomamos la tasa global de todas las inscripciones históricas
         List<Enrollment> allEnrollments = enrollmentRepository.findAll();
@@ -64,15 +64,16 @@ public class DashboardService {
         Users teacher = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Docente no encontrado."));
 
-        List<Subject> mySubjects = subjectRepository.findAll().stream()
-                .filter(s -> s.getTeacher() != null && s.getTeacher().getId().equals(teacher.getId()))
-                .collect(Collectors.toList());
+        List<Subject> mySubjects = subjectRepository.findByTeacher_Id(teacher.getId());
+        Map<Integer, Long> studentCountBySubjectId = countEnrollmentsBySubjectIds(
+                mySubjects.stream().map(Subject::getId).toList()
+        );
 
         int pendingActas = (int) mySubjects.stream().filter(s -> s.getRecordStatus() == RecordStatus.ACTIVE).count();
 
         List<SubjectSummaryDTO> subjectSummaries = mySubjects.stream()
                 .map(s -> {
-                    long studentCount = enrollmentRepository.findBySubjectId(s.getId()).size();
+                    long studentCount = studentCountBySubjectId.getOrDefault(s.getId(), 0L);
                     return SubjectSummaryDTO.builder()
                             .id(s.getId())
                             .code(s.getCode())
@@ -81,7 +82,7 @@ public class DashboardService {
                             .studentCount((int) studentCount)
                             .progressPercentage(s.getRecordStatus() == RecordStatus.CLOSED ? 100.0 : 65.0) // Placeholder
                             .build();
-                }).collect(Collectors.toList());
+                }).toList();
 
         return DashboardTeacherDTO.builder()
                 .welcomeMessage("Bienvenido, " + teacher.getFullName())
@@ -99,31 +100,32 @@ public class DashboardService {
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado."));
 
         List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(student.getId());
+        List<Enrollment> activeEnrollments = enrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
+                .toList();
+        Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
+                activeEnrollments.stream().map(Enrollment::getId).toList()
+        );
 
         double gpa = enrollments.stream()
                 .filter(e -> e.getFinalScore() != null)
                 .mapToDouble(e -> e.getFinalScore().doubleValue())
                 .average().orElse(0.0);
 
-        List<EnrolledSubjectDetailDTO> details = enrollments.stream()
-                .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
+        List<EnrolledSubjectDetailDTO> details = activeEnrollments.stream()
                 .map(e -> {
                     Subject s = e.getSubject();
-                    long absences = attendanceRepository.countByEnrollmentIdAndStatus(e.getId(), AttendanceStatus.ABSENT);
-                    int limit = switch (s.getModality()) {
-                        case FACE_TO_FACE -> systemSettingService.getIntValue("ABSENCE_LIMIT_FACE_TO_FACE", 5);
-                        case BLENDED -> systemSettingService.getIntValue("ABSENCE_LIMIT_BLENDED", 3);
-                        case ONLINE -> 999;
-                    };
+                    long absences = absencesByEnrollmentId.getOrDefault(e.getId(), 0L);
+                    int limit = systemSettingService.getAbsenceLimit(s.getModality());
 
-                    List<Grade> grades = gradeRepository.findByEnrollmentId(e.getId());
+                    List<Grade> grades = e.getGrades();
                     List<GradeComponentDTO> breakdown = grades.stream()
                             .map(g -> GradeComponentDTO.builder()
                                     .name(g.getComponent().getName())
                                     .score(g.getScore().doubleValue())
                                     .weight(g.getComponent().getWeight().doubleValue())
                                     .build())
-                            .collect(Collectors.toList());
+                            .toList();
 
                     double currentGrade = grades.stream().mapToDouble(g -> g.getScore().doubleValue()).sum();
 
@@ -139,7 +141,7 @@ public class DashboardService {
                             .atRisk(absences >= limit - 1)
                             .gradeBreakdown(breakdown)
                             .build();
-                }).collect(Collectors.toList());
+                }).toList();
 
         return DashboardStudentDTO.builder()
                 .studentName(student.getFullName())
@@ -148,4 +150,28 @@ public class DashboardService {
                 .enrolledSubjects(details)
                 .build();
     }
+
+        private Map<Integer, Long> countEnrollmentsBySubjectIds(List<Integer> subjectIds) {
+                if (subjectIds.isEmpty()) {
+                        return Map.of();
+                }
+
+                return enrollmentRepository.countBySubjectIds(subjectIds).stream()
+                                .collect(Collectors.toMap(
+                                                row -> ((Number) row[0]).intValue(),
+                                                row -> ((Number) row[1]).longValue()
+                                ));
+        }
+
+        private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
+                if (enrollmentIds.isEmpty()) {
+                        return Map.of();
+                }
+
+                return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
+                                .collect(Collectors.toMap(
+                                                row -> (UUID) row[0],
+                                                row -> ((Number) row[1]).longValue()
+                                ));
+        }
 }

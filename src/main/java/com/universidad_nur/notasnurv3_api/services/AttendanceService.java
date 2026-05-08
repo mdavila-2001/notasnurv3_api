@@ -9,6 +9,7 @@ import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException
 import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,10 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final SubjectRepository subjectRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final UserRepository userRepository;
     private final SystemSettingService systemSettingService;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveBulkAttendance(AttendanceBulkRequest request, String teacherEmail) {
         if (request.date().isAfter(LocalDate.now())) {
             throw new InvalidOperationException("No se puede registrar asistencia en fechas futuras.");
@@ -38,7 +40,10 @@ public class AttendanceService {
             throw new InvalidOperationException("No se puede registrar asistencia si la materia está en estado CLOSED.");
         }
 
-        if (subject.getTeacher() == null || !subject.getTeacher().getEmail().equalsIgnoreCase(teacherEmail)) {
+        Users teacher = userRepository.findByEmail(teacherEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
+
+        if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
             throw new UnauthorizedAccessException("No tienes permisos para registrar asistencia en esta materia.");
         }
 
@@ -70,27 +75,24 @@ public class AttendanceService {
         }
         attendanceRepository.save(attendance);
 
-        // Regla del Killer (HU 16)
-        if (item.status() == AttendanceStatus.ABSENT) {
-            checkAbsenceLimit(enrollment, modality);
-        }
+        reconcileEnrollmentStatus(enrollment, modality);
     }
 
-    private void checkAbsenceLimit(Enrollment enrollment, Modality modality) {
+    private void reconcileEnrollmentStatus(Enrollment enrollment, Modality modality) {
         long totalAbsences = attendanceRepository.countByEnrollmentIdAndStatus(enrollment.getId(), AttendanceStatus.ABSENT);
-        int limit = getAbsenceLimit(modality);
+        int limit = systemSettingService.getAbsenceLimit(modality);
 
-        if (totalAbsences > limit && enrollment.getStatus() != EnrollmentStatus.FAILED_BY_ATTENDANCE) {
-            enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
+        if (totalAbsences > limit) {
+            if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
+                enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
+                enrollmentRepository.save(enrollment);
+            }
+            return;
+        }
+
+        if (enrollment.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE) {
+            enrollment.setStatus(EnrollmentStatus.ACTIVE);
             enrollmentRepository.save(enrollment);
         }
-    }
-
-    private int getAbsenceLimit(Modality modality) {
-        return switch (modality) {
-            case FACE_TO_FACE -> systemSettingService.getIntValue("ABSENCE_LIMIT_FACE_TO_FACE", 5);
-            case BLENDED -> systemSettingService.getIntValue("ABSENCE_LIMIT_BLENDED", 3);
-            case ONLINE -> systemSettingService.getIntValue("ABSENCE_LIMIT_ONLINE", 999);
-        };
     }
 }

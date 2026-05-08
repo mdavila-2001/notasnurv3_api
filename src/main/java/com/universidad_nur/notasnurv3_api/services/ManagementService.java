@@ -14,7 +14,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +90,12 @@ public class ManagementService {
                 .orElseThrow(() -> new ResourceNotFoundException("Gestión no encontrada."));
 
         List<Enrollment> enrollments = enrollmentRepository.findBySubject_Semester_ManagementId(managementId);
+        List<Enrollment> activeEnrollments = enrollments.stream()
+                .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+                .toList();
+        Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
+                activeEnrollments.stream().map(Enrollment::getId).toList()
+        );
 
         long totalEnrollments = enrollments.size();
         long passedEnrollments = enrollments.stream().filter(e -> e.getStatus() == EnrollmentStatus.PASSED).count();
@@ -95,23 +104,13 @@ public class ManagementService {
         double passRatePercentage = totalEnrollments > 0 ? ((double) passedEnrollments / totalEnrollments) * 100 : 0.0;
 
         // Calcular alumnos en riesgo: aquellos cuyas faltas actuales están exactamente a 1 del límite
-        int limitFaceToFace = systemSettingService.getIntValue("ABSENCE_LIMIT_FACE_TO_FACE", 5);
-        int limitBlended = systemSettingService.getIntValue("ABSENCE_LIMIT_BLENDED", 3);
-        int limitOnline = systemSettingService.getIntValue("ABSENCE_LIMIT_ONLINE", 999);
-
         long studentsAtRisk = 0;
-        for (Enrollment enrollment : enrollments) {
-            if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
-                long absences = attendanceRepository.countByEnrollmentIdAndStatus(enrollment.getId(), AttendanceStatus.ABSENT);
-                int limit = switch (enrollment.getSubject().getModality()) {
-                    case FACE_TO_FACE -> limitFaceToFace;
-                    case BLENDED -> limitBlended;
-                    case ONLINE -> limitOnline;
-                };
+        for (Enrollment enrollment : activeEnrollments) {
+            long absences = absencesByEnrollmentId.getOrDefault(enrollment.getId(), 0L);
+            int limit = systemSettingService.getAbsenceLimit(enrollment.getSubject().getModality());
 
-                if (absences == limit - 1) {
-                    studentsAtRisk++;
-                }
+            if (absences == limit - 1) {
+                studentsAtRisk++;
             }
         }
 
@@ -124,6 +123,18 @@ public class ManagementService {
                 .passRatePercentage(passRatePercentage)
                 .studentsAtRisk(studentsAtRisk)
                 .build();
+    }
+
+    private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
+        if (enrollmentIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
     }
 
     private ManagementResponse toResponse(Management management) {

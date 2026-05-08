@@ -9,11 +9,8 @@ import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException
 import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -43,24 +40,13 @@ public class EvaluationPlanService {
 
         Optional<EvaluationPlan> existingPlan = evaluationPlanRepository.findBySubjectId(subjectId);
         if (existingPlan.isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Esta materia ya tiene un plan de evaluación configurado."
-            );
+            return toResponse(existingPlan.get());
         }
 
-        try {
-            EvaluationPlan newPlan = evaluationPlanRepository.save(
-                    EvaluationPlan.builder().subject(subject).build()
-            );
-            return toResponse(newPlan);
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Esta materia ya tiene un plan de evaluación configurado.",
-                    e
-            );
-        }
+        EvaluationPlan newPlan = evaluationPlanRepository.save(
+                EvaluationPlan.builder().subject(subject).build()
+        );
+        return toResponse(newPlan);
     }
 
     @Transactional
@@ -78,7 +64,7 @@ public class EvaluationPlanService {
                 .map(com.universidad_nur.notasnurv3_api.entities.Component::getWeight)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (totalWeight.compareTo(new BigDecimal("100.00")) != 0 && totalWeight.compareTo(new BigDecimal("100")) != 0) {
+        if (totalWeight.compareTo(new BigDecimal("100")) != 0) {
             throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("La suma de las ponderaciones debe ser exactamente 100.");
         }
 

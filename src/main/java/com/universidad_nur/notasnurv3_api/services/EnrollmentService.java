@@ -132,7 +132,9 @@ public class EnrollmentService {
             throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
         }
 
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId).stream()
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .toList();
 
         return enrollments.stream().map(enrollment -> {
             UserDegree academicRecord = enrollment.getAcademicRecord();
@@ -157,7 +159,9 @@ public class EnrollmentService {
      * Vista del Estudiante: Obtiene sus materias indicando a qué carrera pertenece la inscripción.
      */
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserIdAndStatus(currentUser.getId(), EnrollmentStatus.ACTIVE);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(currentUser.getId()).stream()
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .toList();
 
         return enrollments.stream().map(enrollment -> {
             Subject subject = enrollment.getSubject();

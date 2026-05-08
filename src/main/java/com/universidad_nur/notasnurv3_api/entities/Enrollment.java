@@ -7,6 +7,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -43,4 +45,8 @@ public class Enrollment extends BaseEntity {
 
     @Column(name = "final_score")
     private Integer finalScore;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "enrollment", fetch = FetchType.LAZY)
+    private List<Grade> grades = new ArrayList<>();
 }

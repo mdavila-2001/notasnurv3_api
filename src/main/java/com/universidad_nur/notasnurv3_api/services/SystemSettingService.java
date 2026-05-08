@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import com.universidad_nur.notasnurv3_api.entities.Modality;
 import com.universidad_nur.notasnurv3_api.entities.SystemSetting;
 import com.universidad_nur.notasnurv3_api.repositories.SystemSettingRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,29 @@ public class SystemSettingService {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public int getAbsenceLimit(Modality modality) {
+        return switch (modality) {
+            case FACE_TO_FACE -> resolveIntSetting("MAX_ABSENCES_PRESENTIAL", "ABSENCE_LIMIT_FACE_TO_FACE", 5);
+            case BLENDED -> resolveIntSetting("MAX_ABSENCES_BLENDED", "ABSENCE_LIMIT_BLENDED", 3);
+            case ONLINE -> resolveIntSetting("MAX_ABSENCES_ONLINE", "ABSENCE_LIMIT_ONLINE", 999);
+        };
+    }
+
+    private int resolveIntSetting(String primaryKey, String legacyKey, int defaultValue) {
+        return systemSettingRepository.findBySettingKey(primaryKey)
+                .or(() -> systemSettingRepository.findBySettingKey(legacyKey))
+                .map(SystemSetting::getSettingValue)
+                .map(value -> {
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (NumberFormatException e) {
+                        return defaultValue;
+                    }
+                })
+                .orElse(defaultValue);
     }
 
     @Transactional

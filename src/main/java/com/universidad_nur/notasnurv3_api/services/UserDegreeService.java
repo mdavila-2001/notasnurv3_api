@@ -21,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +46,9 @@ public class UserDegreeService {
 
     @Transactional
     public UserDegreeResponse openRecord(UserDegreeRequest request) {
+                if (request == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La solicitud de expediente académico es obligatoria.");
+                }
 
         Users user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));

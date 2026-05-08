@@ -30,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +99,9 @@ public class ReportService {
         }
 
         List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
+        Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
+                enrollments.stream().map(Enrollment::getId).toList()
+        );
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Asistencias");
@@ -118,7 +124,7 @@ public class ReportService {
                 row.createCell(0).setCellValue(e.getAcademicRecord().getUser().getCi());
                 row.createCell(1).setCellValue(e.getAcademicRecord().getUser().getFullName());
 
-                long absences = attendanceRepository.countByEnrollmentIdAndStatus(e.getId(), AttendanceStatus.ABSENT);
+                long absences = absencesByEnrollmentId.getOrDefault(e.getId(), 0L);
                 row.createCell(2).setCellValue(absences);
                 row.createCell(3).setCellValue(e.getStatus().name());
             }
@@ -132,6 +138,18 @@ public class ReportService {
         } catch (Exception _) {
             throw new InvalidOperationException("Error al generar Excel de Asistencias");
         }
+    }
+
+    private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
+        if (enrollmentIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
     }
 
     private void addTableHeader(PdfPTable table, String... headers) {
