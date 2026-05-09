@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +25,7 @@ public class GradingService {
     private final EvaluationPlanRepository evaluationPlanRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final GradeRepository gradeRepository;
+    private final SystemSettingService systemSettingService;
 
     @Transactional
     public void calculateFinalGradesForSubject(Integer subjectId) {
@@ -52,8 +54,10 @@ public class GradingService {
                 sum = sum.add(grade.getScore());
             }
 
-            long finalScoreLong = Math.round(sum.doubleValue());
-            int finalScore = (int) finalScoreLong;
+            // Aplicar redondeo NUR configurable
+            RoundingMode roundingMode = systemSettingService.getRoundingMode();
+            BigDecimal roundedScore = sum.setScale(0, roundingMode);
+            int finalScore = roundedScore.intValue();
 
             enrollment.setFinalScore(finalScore);
 

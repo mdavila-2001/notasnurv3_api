@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,5 +79,20 @@ public class SystemSettingService {
                     .build();
         }
         return systemSettingRepository.save(setting);
+    }
+
+    @Transactional(readOnly = true)
+    public RoundingMode getRoundingMode() {
+        String roundingType = getSettingValue("NUR_ROUNDING_MODE", "HALF_UP");
+        return switch (roundingType.toUpperCase()) {
+            case "HALF_UP" -> RoundingMode.HALF_UP;
+            case "HALF_DOWN" -> RoundingMode.HALF_DOWN;
+            case "HALF_EVEN" -> RoundingMode.HALF_EVEN;
+            case "UP" -> RoundingMode.UP;
+            case "DOWN" -> RoundingMode.DOWN;
+            case "CEILING" -> RoundingMode.CEILING;
+            case "FLOOR" -> RoundingMode.FLOOR;
+            default -> RoundingMode.HALF_UP; // Default NUR standard
+        };
     }
 }
