@@ -30,7 +30,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userRepository.count() > 0) {
-            log.info("Base de datos ya poblada. Omitiendo siembra.");
+            log.info("⚡ Base de datos ya poblada. Omitiendo siembra.");
             return;
         }
 

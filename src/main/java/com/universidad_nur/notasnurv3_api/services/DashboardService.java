@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DashboardService {
 
-        private static final DateTimeFormatter NEXT_EXAM_FORMATTER = DateTimeFormatter.ofPattern("dd MMM", new Locale("es", "ES"));
+        private static final DateTimeFormatter NEXT_EXAM_FORMATTER = DateTimeFormatter.ofPattern("dd MMM", Locale.forLanguageTag("es-ES"));
 
     private final EnrollmentRepository enrollmentRepository;
     private final SubjectRepository subjectRepository;

@@ -93,7 +93,7 @@ public class UserService {
 
         try {
             return Role.valueOf(roleName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException _) {
+        } catch (IllegalArgumentException e) {
             throw new InvalidOperationException("El rol proporcionado no es válido: " + roleName);
         }
     }
@@ -105,7 +105,7 @@ public class UserService {
 
         try {
             return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException _) {
+        } catch (IllegalArgumentException e) {
             throw new InvalidOperationException("Estado inválido. Valores permitidos: ACTIVE, INACTIVE, GRADUATED");
         }
     }

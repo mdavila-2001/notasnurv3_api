@@ -1,7 +1,6 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
@@ -119,7 +118,7 @@ public class SubjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada"));
         try {
             subjectRepository.activateSubject(id);
-        } catch (Exception _) {
+        } catch (Exception e) {
             throw new InvalidOperationException("Error de validación: Las ponderaciones deben sumar exactamente 100 para activar.");
         }
         Subject activatedSubject = subjectRepository.findById(id)

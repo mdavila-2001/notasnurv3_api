@@ -87,7 +87,7 @@ public class ReportService {
 
             document.close();
             return baos.toByteArray();
-        } catch (Exception _) {
+        } catch (Exception e) {
             throw new InvalidOperationException("Error al generar PDF de Acta de Notas");
         }
     }
@@ -135,7 +135,7 @@ public class ReportService {
 
             workbook.write(baos);
             return baos.toByteArray();
-        } catch (Exception _) {
+        } catch (Exception e) {
             throw new InvalidOperationException("Error al generar Excel de Asistencias");
         }
     }

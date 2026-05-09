@@ -268,6 +268,6 @@ class DashboardServiceTest {
     }
 
     private String resolveExpectedDate(LocalDate endDate) {
-        return endDate.format(DateTimeFormatter.ofPattern("dd MMM", new Locale("es", "ES"))).toUpperCase(Locale.ROOT);
+        return endDate.format(DateTimeFormatter.ofPattern("dd MMM", Locale.forLanguageTag("es-ES"))).toUpperCase(Locale.ROOT);
     }
 }

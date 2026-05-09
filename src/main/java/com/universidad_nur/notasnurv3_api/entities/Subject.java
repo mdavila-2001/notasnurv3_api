@@ -22,6 +22,7 @@ public class Subject extends BaseEntity {
 
     @Version
     @Column(nullable = false)
+    @Builder.Default
     private Integer version = 0;
 
     @Column(name = "code", nullable = false, unique = true, length = 20)
