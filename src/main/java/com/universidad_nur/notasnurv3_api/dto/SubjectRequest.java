@@ -21,4 +21,5 @@ public class SubjectRequest {
     private Integer capacity;
     private Integer semesterId;
     private UUID teacherId;
+    private String category;
 }

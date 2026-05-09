@@ -5,7 +5,10 @@ import java.util.Locale;
 
 public enum EnrollmentStatus {
     ACTIVE,
-    WITHDRAWN;
+    WITHDRAWN,
+    FAILED_BY_ATTENDANCE,
+    PASSED,
+    FAILED;
 
     @JsonCreator
     public static EnrollmentStatus fromValue(String value) {

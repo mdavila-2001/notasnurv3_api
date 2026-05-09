@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.controllers;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.ManagementRequest;
 import com.universidad_nur.notasnurv3_api.dto.ManagementResponse;
+import com.universidad_nur.notasnurv3_api.dto.ManagementStatsResponse;
 import com.universidad_nur.notasnurv3_api.services.ManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +53,11 @@ public class ManagementController {
     public ResponseEntity<ApiResponse<Void>> deleteManagement(@PathVariable Integer id) {
         managementService.deleteManagement(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Gestión eliminada correctamente", null));
+    }
+
+    @GetMapping("/{id}/stats")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    public ResponseEntity<ApiResponse<ManagementStatsResponse>> getStats(@PathVariable Integer id) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Estadísticas obtenidas correctamente", managementService.getStats(id)));
     }
 }

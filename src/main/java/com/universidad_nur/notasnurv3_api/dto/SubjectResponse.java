@@ -25,4 +25,5 @@ public class SubjectResponse {
     private UUID teacherId;
     private String teacherName;
     private String management;
+    private String category;
 }

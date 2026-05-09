@@ -1,6 +1,9 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -8,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.universidad_nur.notasnurv3_api.dto.EnrollmentRequest;
 import com.universidad_nur.notasnurv3_api.dto.EnrollmentResponse;
+import com.universidad_nur.notasnurv3_api.dto.KardexResponse;
+import com.universidad_nur.notasnurv3_api.dto.KardexResponse.SubjectGradeResponse;
 import com.universidad_nur.notasnurv3_api.dto.MySubjectResponseDTO;
 import com.universidad_nur.notasnurv3_api.dto.StudentResponseDTO;
 import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
@@ -18,6 +23,7 @@ import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.UserDegree;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.exceptions.DuplicateResourceException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
@@ -43,7 +49,7 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
 
         if (academicRecord.getStatus() != AcademicStatus.ACTIVE) {
-            throw new RuntimeException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
+            throw new InvalidOperationException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
         }
 
         // 2. Verificar Materia
@@ -51,11 +57,11 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.subjectId() + " no fue encontrada."));
 
         if (subject.getRecordStatus() == RecordStatus.DRAFT) {
-            throw new RuntimeException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
+            throw new InvalidOperationException("La materia está en estado DRAFT (Borrador) y no admite inscripciones.");
         }
 
         if (subject.getCapacity() <= 0) {
-            throw new RuntimeException("No hay cupos disponibles para esta materia.");
+            throw new InvalidOperationException("No hay cupos disponibles para esta materia.");
         }
 
         if (enrollmentRepository.existsByAcademicRecordIdAndSubjectId(academicRecord.getId(), subject.getId())) {
@@ -98,7 +104,7 @@ public class EnrollmentService {
         }
 
         if (enrollment.getStatus() != EnrollmentStatus.ACTIVE) {
-            throw new RuntimeException("La matrícula no está activa o el alumno ya fue dado de baja.");
+            throw new InvalidOperationException("La matrícula no está activa o el alumno ya fue dado de baja.");
         }
 
         Subject subject = enrollment.getSubject();
@@ -122,13 +128,13 @@ public class EnrollmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + subjectId + " no fue encontrada."));
 
         // Seguridad: Solo Admin o el Profesor de la materia pueden ver los datos
-        if (!currentUser.getRole().isAdmin()) {
-            if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(currentUser.getId())) {
-                throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
-            }
+        if (!currentUser.getRole().isAdmin() && (subject.getTeacher() == null || !subject.getTeacher().getId().equals(currentUser.getId()))) {
+            throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
         }
 
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectIdAndStatus(subjectId, EnrollmentStatus.ACTIVE);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId).stream()
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .toList();
 
         return enrollments.stream().map(enrollment -> {
             UserDegree academicRecord = enrollment.getAcademicRecord();
@@ -153,7 +159,9 @@ public class EnrollmentService {
      * Vista del Estudiante: Obtiene sus materias indicando a qué carrera pertenece la inscripción.
      */
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
-        java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserIdAndStatus(currentUser.getId(), EnrollmentStatus.ACTIVE);
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(currentUser.getId()).stream()
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .toList();
 
         return enrollments.stream().map(enrollment -> {
             Subject subject = enrollment.getSubject();
@@ -173,15 +181,40 @@ public class EnrollmentService {
         }).toList();
     }
 
-    private EnrollmentResponse mapToResponseDTO(Enrollment enrollment) {
-        Users student = enrollment.getAcademicRecord().getUser();
-        return EnrollmentResponse.builder()
-                .id(enrollment.getId())
+    @Transactional(readOnly = true)
+    public KardexResponse getMyKardex(String userEmail) {
+        Users student = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado."));
+
+        List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(student.getId());
+
+        if (enrollments.isEmpty()) {
+            return KardexResponse.builder()
+                    .studentName(student.getFullName())
+                    .historyBySemester(Map.of())
+                    .build();
+        }
+
+        String degreeName = enrollments.get(0).getAcademicRecord().getDegree().getName();
+
+        Map<String, List<SubjectGradeResponse>> history = enrollments.stream()
+                .collect(Collectors.groupingBy(
+                        e -> "Gestión " + e.getSubject().getSemester().getManagement().getYear() + " - Semestre " + e.getSubject().getSemester().getNumber(),
+                        Collectors.mapping(
+                                e -> SubjectGradeResponse.builder()
+                                        .subjectCode(e.getSubject().getCode())
+                                        .subjectName(e.getSubject().getName())
+                                        .finalScore(e.getFinalScore())
+                                        .status(e.getStatus())
+                                        .build(),
+                                Collectors.toList()
+                        )
+                ));
+
+        return KardexResponse.builder()
                 .studentName(student.getFullName())
-                .studentCi(student.getCi())
-                .subjectCode(enrollment.getSubject().getCode())
-                .subjectName(enrollment.getSubject().getName())
-                .enrolledAt(enrollment.getCreatedAt())
+                .degreeName(degreeName)
+                .historyBySemester(history)
                 .build();
     }
 

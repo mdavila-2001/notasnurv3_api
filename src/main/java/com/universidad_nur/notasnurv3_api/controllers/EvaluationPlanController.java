@@ -39,4 +39,14 @@ public class EvaluationPlanController {
                 .body(new ApiResponse<>(true, "Plan creado exitosamente", response));
     }
 
+    @PostMapping("/subject/{subjectId}/activate")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
+    public ResponseEntity<ApiResponse<Void>> activatePlan(
+            @PathVariable Integer subjectId,
+            Authentication authentication
+    ) {
+        evaluationPlanService.activatePlan(subjectId, authentication.getName());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Plan de evaluación activado exitosamente", null));
+    }
+
 }
