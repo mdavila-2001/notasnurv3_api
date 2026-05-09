@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -50,29 +51,35 @@ public class Users extends BaseEntity implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
-    @Column(nullable = false)
-    private String role; //ADMIN, TEACHER, STUDENT
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role; 
 
-    @Column(nullable = false)
-    private String status = "ACTIVE"; //ACTIVE, INACTIVE, GRADUATED
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Transient
+    private String faculty;
 
     public String getFullName() {
         return String.format("%s %s %s %s",
                 name,
                 (middleName != null ? middleName : ""),
-                lastName,
-                motherLastName).replace("  ", " ").trim();
+                (lastName != null ? lastName : ""),
+                (motherLastName != null ? motherLastName : "")).replace("  ", " ").trim();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (role == null || role.isBlank()) {
+        if (role == null) {
             return List.of();
         }
-
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        return List.of(new SimpleGrantedAuthority(role.authority()));
     }
 
     @Override
@@ -97,6 +104,6 @@ public class Users extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return "ACTIVE".equals(this.status);
+        return this.status == UserStatus.ACTIVE;
     }
 }

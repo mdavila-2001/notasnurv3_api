@@ -1,0 +1,208 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.universidad_nur:notasnurv3_api >-----------------
+[INFO] Building notasnurv3_api 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ notasnurv3_api ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ notasnurv3_api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ notasnurv3_api ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ notasnurv3_api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.5:test (default-test) @ notasnurv3_api ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest
+21:20:37.573 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest]: SemesterControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:20:37.846 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest
+21:20:37.955 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest]: SemesterControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+21:20:37.965 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.5)
+
+2026-04-17T21:20:38.432-04:00  INFO 31928 --- [notasnurv3_api] [           main] .u.n.c.SemesterControllerIntegrationTest : Starting SemesterControllerIntegrationTest using Java 21.0.5 with PID 31928 (started by joaquin in C:\Users\joaquin\OneDrive\Desktop\Materias\Taller V\proyecto taller V\notasnurv3_api)
+2026-04-17T21:20:38.434-04:00  INFO 31928 --- [notasnurv3_api] [           main] .u.n.c.SemesterControllerIntegrationTest : The following 1 profile is active: "test"
+2026-04-17T21:20:39.590-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-17T21:20:39.683-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 79 ms. Found 6 JPA repository interfaces.
+2026-04-17T21:20:40.774-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-17T21:20:40.864-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-04-17T21:20:41.722-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-17T21:20:41.764-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-17T21:20:42.055-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:notasnurv3db user=SA
+2026-04-17T21:20:42.056-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-17T21:20:42.093-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000511: The 2.4.240 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly.The minimum supported version is 13.0.0. Check the community dialects project for available legacy versions.
+2026-04-17T21:20:42.098-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-17T21:20:42.125-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:notasnurv3db]
+	Database driver: H2 JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 2.4.240
+	Default catalog/schema: NOTASNURV3DB/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-17T21:20:43.803-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-17T21:20:43.883-04:00  INFO 31928 --- [notasnurv3_api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-17T21:20:44.053-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-17T21:20:45.757-04:00  INFO 31928 --- [notasnurv3_api] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-04-17T21:20:45.757-04:00  WARN 31928 --- [notasnurv3_api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-04-17T21:20:45.830-04:00  WARN 31928 --- [notasnurv3_api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-17T21:20:47.058-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-04-17T21:20:47.058-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-04-17T21:20:47.060-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 2 ms
+2026-04-17T21:20:47.097-04:00  INFO 31928 --- [notasnurv3_api] [           main] .u.n.c.SemesterControllerIntegrationTest : Started SemesterControllerIntegrationTest in 9.039 seconds (process running for 11.134)
+[SEEDER] Iniciando siembra de usuarios de prueba...
+? [SEEDER] 3 usuarios creados exitosamente.
+? ADMIN -> Correo: admin@nur.edu.bo | Pass: admin123
+? DOCENTE -> Correo: cdocente@nur.edu.bo | Pass: docente123
+? ESTUDIANTE -> CI: 88997766 | PIN: 1234
+=====================================================
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.75 s -- in com.universidad_nur.notasnurv3_api.controllers.SemesterControllerIntegrationTest
+[INFO] Running com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest
+2026-04-17T21:20:48.937-04:00  INFO 31928 --- [notasnurv3_api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest]: UserControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-04-17T21:20:48.942-04:00  INFO 31928 --- [notasnurv3_api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest
+2026-04-17T21:20:48.945-04:00  INFO 31928 --- [notasnurv3_api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest]: UserControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-04-17T21:20:48.953-04:00  INFO 31928 --- [notasnurv3_api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.5)
+
+2026-04-17T21:20:49.008-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.c.UserControllerIntegrationTest    : Starting UserControllerIntegrationTest using Java 21.0.5 with PID 31928 (started by joaquin in C:\Users\joaquin\OneDrive\Desktop\Materias\Taller V\proyecto taller V\notasnurv3_api)
+2026-04-17T21:20:49.008-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.c.UserControllerIntegrationTest    : The following 1 profile is active: "test"
+2026-04-17T21:20:49.289-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-17T21:20:49.319-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 6 JPA repository interfaces.
+2026-04-17T21:20:49.847-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-17T21:20:49.942-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-17T21:20:49.945-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-04-17T21:20:49.949-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection conn10: url=jdbc:h2:mem:notasnurv3db user=SA
+2026-04-17T21:20:49.951-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-04-17T21:20:49.952-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000511: The 2.4.240 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly.The minimum supported version is 13.0.0. Check the community dialects project for available legacy versions.
+2026-04-17T21:20:49.954-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-17T21:20:49.958-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:notasnurv3db]
+	Database driver: H2 JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 2.4.240
+	Default catalog/schema: NOTASNURV3DB/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-17T21:20:50.250-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-17T21:20:50.330-04:00  INFO 31928 --- [notasnurv3_api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-17T21:20:50.868-04:00  INFO 31928 --- [notasnurv3_api] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-04-17T21:20:50.869-04:00  WARN 31928 --- [notasnurv3_api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-04-17T21:20:50.970-04:00  WARN 31928 --- [notasnurv3_api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-17T21:20:51.663-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-04-17T21:20:51.663-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-04-17T21:20:51.667-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 2 ms
+2026-04-17T21:20:51.694-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.c.UserControllerIntegrationTest    : Started UserControllerIntegrationTest in 2.73 seconds (process running for 15.731)
+[SEEDER] Iniciando siembra de usuarios de prueba...
+? [SEEDER] 3 usuarios creados exitosamente.
+? ADMIN -> Correo: admin@nur.edu.bo | Pass: admin123
+? DOCENTE -> Correo: cdocente@nur.edu.bo | Pass: docente123
+? ESTUDIANTE -> CI: 88997766 | PIN: 1234
+=====================================================
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.487 s -- in com.universidad_nur.notasnurv3_api.controllers.UserControllerIntegrationTest
+[INFO] Running com.universidad_nur.notasnurv3_api.entities.RoleTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.universidad_nur.notasnurv3_api.entities.RoleTest
+[INFO] Running com.universidad_nur.notasnurv3_api.entities.UsersTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.universidad_nur.notasnurv3_api.entities.UsersTest
+[INFO] Running com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests
+2026-04-17T21:20:52.470-04:00  INFO 31928 --- [notasnurv3_api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests]: Notasnurv3ApiApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-04-17T21:20:52.495-04:00  INFO 31928 --- [notasnurv3_api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests
+2026-04-17T21:20:52.497-04:00  INFO 31928 --- [notasnurv3_api] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests]: Notasnurv3ApiApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-04-17T21:20:52.499-04:00  INFO 31928 --- [notasnurv3_api] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplication for test class com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.5)
+
+2026-04-17T21:20:52.569-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.Notasnurv3ApiApplicationTests      : Starting Notasnurv3ApiApplicationTests using Java 21.0.5 with PID 31928 (started by joaquin in C:\Users\joaquin\OneDrive\Desktop\Materias\Taller V\proyecto taller V\notasnurv3_api)
+2026-04-17T21:20:52.570-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.Notasnurv3ApiApplicationTests      : The following 1 profile is active: "test"
+2026-04-17T21:20:53.056-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-17T21:20:53.106-04:00  INFO 31928 --- [notasnurv3_api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 46 ms. Found 6 JPA repository interfaces.
+2026-04-17T21:20:53.357-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-17T21:20:53.404-04:00  INFO 31928 --- [notasnurv3_api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-17T21:20:53.408-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Starting...
+2026-04-17T21:20:53.412-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-3 - Added connection conn20: url=jdbc:h2:mem:notasnurv3db user=SA
+2026-04-17T21:20:53.413-04:00  INFO 31928 --- [notasnurv3_api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Start completed.
+2026-04-17T21:20:53.414-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000511: The 2.4.240 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly.The minimum supported version is 13.0.0. Check the community dialects project for available legacy versions.
+2026-04-17T21:20:53.415-04:00  WARN 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-17T21:20:53.417-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:notasnurv3db]
+	Database driver: H2 JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 2.4.240
+	Default catalog/schema: NOTASNURV3DB/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-17T21:20:53.559-04:00  INFO 31928 --- [notasnurv3_api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-17T21:20:53.594-04:00  INFO 31928 --- [notasnurv3_api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-17T21:20:53.739-04:00  INFO 31928 --- [notasnurv3_api] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-04-17T21:20:53.740-04:00  WARN 31928 --- [notasnurv3_api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2026-04-17T21:20:53.758-04:00  WARN 31928 --- [notasnurv3_api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-17T21:20:53.964-04:00  INFO 31928 --- [notasnurv3_api] [           main] c.u.n.Notasnurv3ApiApplicationTests      : Started Notasnurv3ApiApplicationTests in 1.457 seconds (process running for 18.002)
+[SEEDER] Iniciando siembra de usuarios de prueba...
+? [SEEDER] 3 usuarios creados exitosamente.
+? ADMIN -> Correo: admin@nur.edu.bo | Pass: admin123
+? DOCENTE -> Correo: cdocente@nur.edu.bo | Pass: docente123
+? ESTUDIANTE -> CI: 88997766 | PIN: 1234
+=====================================================
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.759 s -- in com.universidad_nur.notasnurv3_api.Notasnurv3ApiApplicationTests
+[INFO] Running com.universidad_nur.notasnurv3_api.services.AuthServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.289 s -- in com.universidad_nur.notasnurv3_api.services.AuthServiceTest
+[INFO] Running com.universidad_nur.notasnurv3_api.services.SemesterServiceTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.208 s -- in com.universidad_nur.notasnurv3_api.services.SemesterServiceTest
+[INFO] Running com.universidad_nur.notasnurv3_api.services.UserServiceTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s -- in com.universidad_nur.notasnurv3_api.services.UserServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21.638 s
+[INFO] Finished at: 2026-04-17T21:20:54-04:00
+[INFO] ------------------------------------------------------------------------

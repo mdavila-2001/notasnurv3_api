@@ -2,11 +2,8 @@ package com.universidad_nur.notasnurv3_api.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.type.SqlTypes;
-import java.util.UUID;
 import java.util.List;
 
 @Entity
@@ -17,10 +14,8 @@ import java.util.List;
 @SQLRestriction("deleted_at is NULL")
 public class EvaluationPlan extends BaseEntity {
     @Id
-    @GeneratedValue
-    @JdbcTypeCode(SqlTypes.UUID)
-    @Column(columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false, unique = true)

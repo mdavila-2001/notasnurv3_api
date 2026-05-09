@@ -1,71 +1,152 @@
 package com.universidad_nur.notasnurv3_api.config;
 
-import com.universidad_nur.notasnurv3_api.entities.Users;
-import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+import com.universidad_nur.notasnurv3_api.entities.*;
+import com.universidad_nur.notasnurv3_api.repositories.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
+@Slf4j
 public class DatabaseSeeder implements CommandLineRunner {
+
     private final UserRepository userRepository;
+    private final FacultyRepository facultyRepository;
+    private final DegreeRepository degreeRepository;
+    private final ManagementRepository managementRepository;
+    private final SemesterRepository semesterRepository;
+    private final SubjectRepository subjectRepository;
+    private final UserDegreeRepository userDegreeRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) throws Exception {
-        if (userRepository.count() == 0) {
-            System.out.println("[SEEDER] Iniciando siembra de usuarios de prueba...");
-
-            // 1. Cuenta de ADMINISTRADOR
-            Users admin = Users.builder()
-                    .ci("1000000") // CI falso
-                    .name("Admin")
-                    .lastName("Sistema")
-                    .motherLastName("NUR")
-                    .email("admin@nur.edu.bo")
-                    .password(passwordEncoder.encode("admin123")) // Contraseña: admin123
-                    .role("ADMIN")
-                    .status("ACTIVE")
-                    .build();
-
-            // 2. Cuenta de DOCENTE
-            Users teacher = Users.builder()
-                    .ci("2000000")
-                    .name("Carlos")
-                    .lastName("Docente")
-                    .motherLastName("Experto")
-                    .email("cdocente@nur.edu.bo")
-                    .password(passwordEncoder.encode("docente123")) // Contraseña: docente123
-                    .role("TEACHER")
-                    .status("ACTIVE")
-                    .build();
-
-            // 3. Cuenta de ESTUDIANTE
-            Users student = Users.builder()
-                    .ci("88997766") // Este es el CI con el que hará Login
-                    .name("Maria")
-                    .lastName("Estudiante")
-                    .motherLastName("Ejemplo")
-                    .email("88997766@nur.edu.bo") // Alumno usa email otorgado por administración que viene a ser su CI de estudiante
-                    .password(passwordEncoder.encode("1234")) // PIN corto para el estudiante
-                    .role("STUDENT")
-                    .status("ACTIVE")
-                    .build();
-
-            // Guardamos todos en lote
-            userRepository.saveAll(List.of(admin, teacher, student));
-
-            System.out.println("✅ [SEEDER] 3 usuarios creados exitosamente.");
-            System.out.println("🔑 ADMIN -> Correo: admin@nur.edu.bo | Pass: admin123");
-            System.out.println("🔑 DOCENTE -> Correo: cdocente@nur.edu.bo | Pass: docente123");
-            System.out.println("🔑 ESTUDIANTE -> CI: 88997766 | PIN: 1234");
-            System.out.println("=====================================================");
-        } else {
-            System.out.println("⚡ [SEEDER] Base de datos ya poblada. Omitiendo siembra.");
+    public void run(String... args) {
+        if (userRepository.count() > 0) {
+            log.info("⚡ Base de datos ya poblada. Omitiendo siembra.");
+            return;
         }
+
+        log.info("Iniciando siembra de datos completa...");
+
+        // 1. Facultad
+        Faculty faculty = facultyRepository.save(
+            Faculty.builder()
+                .name("Facultad de Ciencias y Tecnología")
+                .code("FCE")
+                .build()
+        );
+
+        // 2. Carrera
+        Degree degree = degreeRepository.save(
+            Degree.builder()
+                .name("Ingeniería de Sistemas")
+                .code("ISC")
+                .faculty(faculty)
+                .build()
+        );
+
+        // 3. Usuarios
+        userRepository.save(Users.builder()
+            .ci("1000000")
+            .name("Admin")
+            .lastName("Sistema")
+            .motherLastName("NUR")
+            .email("admin@nur.edu.bo")
+            .password(passwordEncoder.encode("admin123"))
+            .role(Role.ADMIN)
+            .status(UserStatus.ACTIVE)
+            .build());
+            
+        Users teacher = userRepository.save(Users.builder()
+            .ci("2000000")
+            .name("Carlos")
+            .lastName("Docente")
+            .motherLastName("Experto")
+            .email("cdocente@nur.edu.bo")
+            .password(passwordEncoder.encode("docente123"))
+            .role(Role.TEACHER)
+            .status(UserStatus.ACTIVE)
+            .build());
+
+        Users student = userRepository.save(Users.builder()
+            .ci("88997766")
+            .name("Maria")
+            .lastName("Estudiante")
+            .motherLastName("Ejemplo")
+            .email("88997766@nur.edu.bo")
+            .password(passwordEncoder.encode("1234"))
+            .role(Role.STUDENT)
+            .status(UserStatus.ACTIVE)
+            .build());
+
+        // 4. Gestión y Semestre
+        Management management = managementRepository.save(
+            Management.builder()
+                .year(2026)
+                .build()
+        );
+
+        Semester semester = semesterRepository.save(
+            Semester.builder()
+                .number(1)
+                .startDate(LocalDate.of(2026, 3, 9))
+                .endDate(LocalDate.of(2025, 7, 18))
+                .management(management)
+                .build()
+        );
+
+        // 5. Materia
+        Subject subject = subjectRepository.save(
+            Subject.builder()
+                .code("ISC-301")
+                .name("Ingeniería de Software")
+                .modality(Modality.FACE_TO_FACE)
+                .capacity(30)
+                .recordStatus(RecordStatus.PUBLISHED)
+                .semester(semester)
+                .teacher(teacher)
+                .build()
+        );
+
+        // 6. Expediente Académico (UserDegree)
+        UserDegree academicRecord = userDegreeRepository.save(
+            UserDegree.builder()
+                .user(student)
+                .degree(degree)
+                .type(ProfileType.STUDENT)
+                .status(AcademicStatus.ACTIVE)
+                .build()
+        );
+
+        // 7. Inscripción (Enrollment)
+        enrollmentRepository.save(
+            Enrollment.builder()
+                .academicRecord(academicRecord)
+                .subject(subject)
+                .status(EnrollmentStatus.ACTIVE)
+                .build()
+        );
+
+        subject.setCapacity(subject.getCapacity() - 1);
+        subjectRepository.save(subject);
+
+        log.info("✅ [SEEDER] Datos iniciales creados exitosamente.");
+        log.info("=====================================================");
+        log.info("🏛️  Facultad : " + faculty.getName());
+        log.info("🎓  Carrera  : " + degree.getName());
+        log.info("📚  Materia  : " + subject.getName());
+        log.info("-----------------------------------------------------");
+        log.info("🔑 ADMIN     → email: admin@nur.edu.bo | pass: admin123");
+        log.info("🔑 DOCENTE   → email: cdocente@nur.edu.bo | pass: docente123");
+        log.info("🔑 ESTUDIANTE→ CI: 88997766 | PIN: 1234");
+        log.info("=====================================================");
     }
 }

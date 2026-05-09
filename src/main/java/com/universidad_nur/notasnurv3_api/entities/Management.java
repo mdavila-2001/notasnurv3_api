@@ -33,7 +33,7 @@ public class Management extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "year", nullable = false, unique = true)
     private Integer year;
