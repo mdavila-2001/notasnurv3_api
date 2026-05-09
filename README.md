@@ -35,8 +35,8 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 | :--- | :--- | :--- | :--- |
 | **POST** | `/managements` | Admin | Crea una nueva gestión anual (ej: 2026). |
 | **GET** | `/managements/{id}/stats` | Admin | Análisis de tasa de aprobación y alumnos en riesgo por gestión. |
-| **PUT** | `/subjects/{id}/close` | Admin/Teacher | **Cierre definitivo de acta.** Bloquea ediciones y congela notas. |
-| **POST** | `/subjects/{id}/activate` | Admin | Cambia materia de DRAFT a ACTIVE si el plan de evaluación suma 100. |
+| **PUT** | `/subjects/{id}/close` | Admin | **Cierre definitivo de acta.** Bloquea ediciones y congela notas. |
+| **PUT** | `/subjects/{id}/activate` | Admin | Cambia materia de DRAFT a ACTIVE si el plan de evaluación suma 100. |
 | **GET** | `/enrollments/my-history` | Estudiante | Kardex oficial por semestres. |
 
 ### 📝 Registro y Evaluación (Operativo)
