@@ -21,7 +21,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             LEFT JOIN FETCH e.academicRecord ar
             LEFT JOIN FETCH ar.user
             LEFT JOIN FETCH e.subject s
-            LEFT JOIN FETCH s.teacher
+                LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
             LEFT JOIN FETCH g.component
             WHERE s.id = :subjectId
@@ -38,12 +38,38 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             LEFT JOIN FETCH e.academicRecord ar
             LEFT JOIN FETCH ar.user
             LEFT JOIN FETCH e.subject s
-            LEFT JOIN FETCH s.teacher
+                LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
             LEFT JOIN FETCH g.component
             WHERE ar.user.id = :studentId
             """)
         List<Enrollment> findByAcademicRecord_UserId(@Param("studentId") UUID studentId);
+
+            @Query("""
+                SELECT DISTINCT e
+                FROM Enrollment e
+                LEFT JOIN FETCH e.academicRecord ar
+                LEFT JOIN FETCH ar.user
+                LEFT JOIN FETCH e.subject s
+                LEFT JOIN FETCH s.semester
+                LEFT JOIN FETCH e.grades g
+                LEFT JOIN FETCH g.component
+                WHERE e.status = :status
+                """)
+            List<Enrollment> findByStatusWithDetails(@Param("status") EnrollmentStatus status);
+
+            @Query("""
+                SELECT DISTINCT e
+                FROM Enrollment e
+                LEFT JOIN FETCH e.academicRecord ar
+                LEFT JOIN FETCH ar.user
+                LEFT JOIN FETCH e.subject s
+                LEFT JOIN FETCH s.semester
+                LEFT JOIN FETCH e.grades g
+                LEFT JOIN FETCH g.component
+                WHERE s.teacher.id = :teacherId
+                """)
+            List<Enrollment> findBySubjectTeacherIdWithDetails(@Param("teacherId") UUID teacherId);
 
         @Query("""
             SELECT DISTINCT e

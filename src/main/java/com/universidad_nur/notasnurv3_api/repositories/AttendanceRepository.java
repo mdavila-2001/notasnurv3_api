@@ -17,6 +17,14 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     Optional<Attendance> findByEnrollmentIdAndDate(UUID enrollmentId, LocalDate date);
     long countByEnrollmentIdAndStatus(UUID enrollmentId, AttendanceStatus status);
 
+    @Query("""
+                    SELECT a.enrollment.id, COUNT(a)
+                    FROM Attendance a
+                    WHERE a.enrollment.id IN :enrollmentIds
+                    GROUP BY a.enrollment.id
+                    """)
+    java.util.List<Object[]> countByEnrollmentIds(@Param("enrollmentIds") Collection<UUID> enrollmentIds);
+
         @Query("""
                         SELECT a.enrollment.id, COUNT(a)
                         FROM Attendance a
