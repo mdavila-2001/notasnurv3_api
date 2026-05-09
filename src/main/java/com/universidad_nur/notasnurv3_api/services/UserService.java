@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,13 @@ public class UserService {
     public List<UserResponse> getUsersByRole(String roleName) {
         Role roleEnum = parseRole(roleName);
         return userRepository.findByRole(roleEnum).stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getUsersByRole(String roleName, Pageable pageable) {
+        Role roleEnum = parseRole(roleName);
+        return userRepository.findByRole(roleEnum, pageable)
+                .map(this::toResponse);
     }
 
     @Transactional

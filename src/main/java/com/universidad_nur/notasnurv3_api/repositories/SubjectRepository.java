@@ -1,6 +1,8 @@
 package com.universidad_nur.notasnurv3_api.repositories;
 
 import com.universidad_nur.notasnurv3_api.entities.Subject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -29,4 +31,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
     List<Subject> findByTeacher_Id(@Param("teacherId") UUID teacherId);
 
     java.util.List<Subject> findBySemesterId(Integer semesterId);
+    
+    Page<Subject> findAll(Pageable pageable);
 }

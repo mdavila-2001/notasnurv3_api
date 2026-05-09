@@ -3,6 +3,9 @@ package com.universidad_nur.notasnurv3_api.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,6 +39,14 @@ public class UserController {
     @GetMapping("/role/{roleName}")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getByRole(@PathVariable String roleName) {
         List<UserResponse> users = userService.getUsersByRole(roleName);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Usuarios obtenidos correctamente", users));
+    }
+
+    @GetMapping("/role/{roleName}/paginated")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getByRolePaginated(
+            @PathVariable String roleName,
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        Page<UserResponse> users = userService.getUsersByRole(roleName, pageable);
         return ResponseEntity.ok(new ApiResponse<>(true, "Usuarios obtenidos correctamente", users));
     }
 

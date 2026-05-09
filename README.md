@@ -34,10 +34,19 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 | Método | Endpoint | Rol | Descripción |
 | :--- | :--- | :--- | :--- |
 | **GET** | `/role/{roleName}` | Admin | Obtiene usuarios filtrados por rol (TEACHER, STUDENT, ADMIN). |
+| **GET** | `/role/{roleName}/paginated` | Admin | **Versión paginada** para grandes volúmenes de usuarios. |
 | **POST** | `/` | Admin | Crea nuevos usuarios (Docentes/Estudiantes). |
 | **PUT** | `/{id}` | Admin | Actualiza datos de un usuario existente. |
 | **DELETE** | `/{id}` | Admin | Elimina un usuario del sistema. |
 | **PATCH** | `/{id}/status` | Admin | Cambia el estado de un usuario (ACTIVE, INACTIVE, GRADUATED). |
+
+**Parámetros de Paginación:**
+- `page`: Número de página (default: 0)
+- `size`: Elementos por página (default: 20)
+- `sort`: Campo de ordenación (default: "name")
+- `direction`: Dirección (asc/desc, default: asc)
+
+*Ejemplo:* `/api/users/role/TEACHER/paginated?page=0&size=10&sort=name,desc`
 
 ### 🏫 Gestión Académica (Estructura)
 *Base Path: `/api/subjects`*
@@ -45,12 +54,21 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 | Método | Endpoint | Rol | Propósito |
 | :--- | :--- | :--- | :--- |
 | **GET** | `/` | All | Lista todas las materias del sistema. |
+| **GET** | `/paginated` | All | **Versión paginada** para grandes volúmenes de materias. |
 | **POST** | `/` | Admin | Crea una nueva materia. |
 | **GET** | `/{id}` | All | Obtiene detalles de una materia específica. |
 | **PUT** | `/{id}` | Admin | Actualiza datos de una materia. |
 | **DELETE** | `/{id}` | Admin | Elimina una materia. |
 | **PUT** | `/{id}/activate` | Admin/Teacher | Activa materia si el plan de evaluación suma 100. |
 | **PUT** | `/{id}/close` | Admin | **Cierre definitivo de acta.** Bloquea ediciones y congela notas. |
+
+**Parámetros de Paginación:**
+- `page`: Número de página (default: 0)
+- `size`: Elementos por página (default: 20)
+- `sort`: Campo de ordenación (default: "name")
+- `direction`: Dirección (asc/desc, default: asc)
+
+*Ejemplo:* `/api/subjects/paginated?page=0&size=15&sort=name,asc`
 
 ### 📋 Gestión de Semestres y Gestiones
 *Base Path: `/api/managements`*
