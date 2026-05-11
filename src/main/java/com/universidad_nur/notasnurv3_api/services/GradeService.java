@@ -2,7 +2,7 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.GradeRequest;
 import com.universidad_nur.notasnurv3_api.dto.GradeResponse;
-import com.universidad_nur.notasnurv3_api.entities.Component;
+import com.universidad_nur.notasnurv3_api.entities.Components;
 import com.universidad_nur.notasnurv3_api.entities.Enrollment;
 import com.universidad_nur.notasnurv3_api.entities.Grade;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
@@ -50,11 +50,11 @@ public class GradeService {
             throw new UnauthorizedAccessException("No tienes permisos para registrar notas en esta materia.");
         }
 
-        Component component = componentRepository.findById(request.componentId())
+        Components components = componentRepository.findById(request.componentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Componente no encontrado."));
 
         // Validar que el componente pertenece a la materia en la que el estudiante está inscrito
-        if (!component.getPlan().getSubject().getId().equals(subject.getId())) {
+        if (!components.getPlan().getSubject().getId().equals(subject.getId())) {
             throw new InvalidOperationException("El componente no pertenece a la materia inscrita.");
         }
 
@@ -64,8 +64,8 @@ public class GradeService {
         }
 
         // Validar que la nota no sobrepase el peso del componente
-        if (request.score().compareTo(component.getWeight()) > 0) {
-            throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + component.getWeight() + ").");
+        if (request.score().compareTo(components.getWeight()) > 0) {
+            throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }
 
         Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
@@ -78,7 +78,7 @@ public class GradeService {
         } else {
             grade = Grade.builder()
                     .enrollment(enrollment)
-                    .component(component)
+                    .components(components)
                     .teacher(teacher)
                     .score(request.score())
                     .build();
@@ -89,7 +89,7 @@ public class GradeService {
         return new GradeResponse(
                 saved.getId(),
                 saved.getEnrollment().getId(),
-                saved.getComponent().getId(),
+                saved.getComponents().getId(),
                 saved.getTeacher().getId(),
                 saved.getScore()
         );
@@ -112,7 +112,7 @@ public class GradeService {
                 .map(grade -> new GradeResponse(
                         grade.getId(),
                         grade.getEnrollment().getId(),
-                        grade.getComponent().getId(),
+                        grade.getComponents().getId(),
                         grade.getTeacher().getId(),
                         grade.getScore()
                 ))
@@ -133,11 +133,11 @@ public class GradeService {
             throw new UnauthorizedAccessException("No tienes permisos para registrar notas en esta materia.");
         }
 
-        Component component = componentRepository.findById(request.componentId())
+        Components components = componentRepository.findById(request.componentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Componente no encontrado."));
 
         // Validar que el componente pertenece a la materia en la que el estudiante está inscrito
-        if (!component.getPlan().getSubject().getId().equals(subject.getId())) {
+        if (!components.getPlan().getSubject().getId().equals(subject.getId())) {
             throw new InvalidOperationException("El componente no pertenece a la materia inscrita.");
         }
 
@@ -147,8 +147,8 @@ public class GradeService {
         }
 
         // Validar que la nota no sobrepase el peso del componente
-        if (request.score().compareTo(component.getWeight()) > 0) {
-            throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + component.getWeight() + ").");
+        if (request.score().compareTo(components.getWeight()) > 0) {
+            throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }
 
         Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
@@ -161,7 +161,7 @@ public class GradeService {
         } else {
             return Grade.builder()
                     .enrollment(enrollment)
-                    .component(component)
+                    .components(components)
                     .teacher(teacher)
                     .score(request.score())
                     .build();

@@ -5,6 +5,9 @@ import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
 import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
 import com.universidad_nur.notasnurv3_api.services.SubjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +34,12 @@ public class SubjectController {
     @GetMapping
     public ResponseEntity<List<SubjectResponse>> getAll() {
         return ResponseEntity.ok(subjectService.getAllSubjects());
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<SubjectResponse>> getAllPaginated(
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(subjectService.getAllSubjects(pageable));
     }
 
 

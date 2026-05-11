@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor @AllArgsConstructor @Builder
 @SQLDelete(sql = "UPDATE component SET deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted_at is NULL")
-public class Component extends BaseEntity {
+public class Components extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

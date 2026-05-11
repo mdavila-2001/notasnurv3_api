@@ -155,9 +155,9 @@ public class DashboardService {
                     List<Grade> grades = e.getGrades();
                     List<GradeComponentDTO> breakdown = grades.stream()
                             .map(g -> GradeComponentDTO.builder()
-                                    .name(g.getComponent().getName())
+                                    .name(g.getComponents().getName())
                                     .score(g.getScore().doubleValue())
-                                    .weight(g.getComponent().getWeight().doubleValue())
+                                    .weight(g.getComponents().getWeight().doubleValue())
                                     .build())
                             .toList();
 
@@ -246,7 +246,7 @@ public class DashboardService {
 
                 Set<Integer> gradedComponentIds = enrollments.stream()
                                 .flatMap(enrollment -> enrollment.getGrades().stream())
-                                .map(grade -> grade.getComponent().getId())
+                                .map(grade -> grade.getComponents().getId())
                                 .collect(Collectors.toSet());
 
                 double totalWeight = evaluationPlan.getComponents().stream()

@@ -4,23 +4,7 @@ import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardAdminDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardStudentDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardTeacherDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.SubjectSummaryDTO;
-import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
-import com.universidad_nur.notasnurv3_api.entities.AttendanceStatus;
-import com.universidad_nur.notasnurv3_api.entities.Component;
-import com.universidad_nur.notasnurv3_api.entities.Degree;
-import com.universidad_nur.notasnurv3_api.entities.Enrollment;
-import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
-import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
-import com.universidad_nur.notasnurv3_api.entities.Management;
-import com.universidad_nur.notasnurv3_api.entities.Modality;
-import com.universidad_nur.notasnurv3_api.entities.ProfileType;
-import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
-import com.universidad_nur.notasnurv3_api.entities.Role;
-import com.universidad_nur.notasnurv3_api.entities.Semester;
-import com.universidad_nur.notasnurv3_api.entities.Subject;
-import com.universidad_nur.notasnurv3_api.entities.UserDegree;
-import com.universidad_nur.notasnurv3_api.entities.Users;
-import com.universidad_nur.notasnurv3_api.entities.Grade;
+import com.universidad_nur.notasnurv3_api.entities.*;
 import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
@@ -137,16 +121,16 @@ class DashboardServiceTest {
                 .category("CORE")
                 .build();
 
-        Component component1 = Component.builder().id(1).name("Parcial 1").weight(new BigDecimal("40.00")).build();
-        Component component2 = Component.builder().id(2).name("Parcial 2").weight(new BigDecimal("60.00")).build();
+        Components components1 = Components.builder().id(1).name("Parcial 1").weight(new BigDecimal("40.00")).build();
+        Components components2 = Components.builder().id(2).name("Parcial 2").weight(new BigDecimal("60.00")).build();
 
         EvaluationPlan plan = EvaluationPlan.builder()
                 .subject(subject)
-                .components(List.of(component1, component2))
+                .components(List.of(components1, components2))
                 .build();
 
-        Grade grade1 = Grade.builder().component(component1).teacher(teacher).score(new BigDecimal("40.00")).build();
-        Grade grade2 = Grade.builder().component(component2).teacher(teacher).score(new BigDecimal("60.00")).build();
+        Grade grade1 = Grade.builder().components(components1).teacher(teacher).score(new BigDecimal("40.00")).build();
+        Grade grade2 = Grade.builder().components(components2).teacher(teacher).score(new BigDecimal("60.00")).build();
 
         Enrollment enrollment1 = Enrollment.builder()
                 .id(enrollmentId1)
