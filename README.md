@@ -65,8 +65,7 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 **Parámetros de Paginación:**
 - `page`: Número de página (default: 0)
 - `size`: Elementos por página (default: 20)
-- `sort`: Campo de ordenación (default: "name")
-- `direction`: Dirección (asc/desc, default: asc)
+- `sort`: Ordenación en formato `campo, direccion` (ej. `name,asc` o `name,desc`; default: `name,asc`)
 
 *Ejemplo:* `/api/subjects/paginated?page=0&size=15&sort=name,asc`
 
@@ -158,9 +157,10 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 ## 🛠️ Configuración Global
 El sistema utiliza una tabla `system_setting` para gestionar parámetros sin necesidad de recompilar código:
 - `NUR_ROUNDING_MODE`: Tipo de redondeo para notas (HALF_UP, HALF_DOWN, etc.).
-- `ABSENCE_LIMIT_FACE_TO_FACE`: Límite de faltas para modalidad presencial.
-- `ABSENCE_LIMIT_BLENDED`: Límite de faltas para modalidad semipresencial.
-- `ABSENCE_LIMIT_ONLINE`: Límite de faltas para modalidad virtual.
+- `MAX_ABSENCES_FACE_TO_FACE`: Límite de faltas para modalidad presencial.
+ - `MAX_ABSENCES_BLENDED`: Límite de faltas para modalidad semipresencial.
+ - `MAX_ABSENCES_ONLINE`: Límite de faltas para modalidad virtual.
+ - `ABSENCE_LIMIT_*`: Nomenclatura legacy/alternativa para límites de faltas; mantener solo por compatibilidad si aplica, pero las claves primarias documentadas y priorizadas por el sistema son `MAX_ABSENCES_*`.
 
 ## 🔐 Seguridad y Autorizaciones
 - **JWT Tokens**: Autenticación stateless con tokens firmados.

@@ -181,7 +181,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             .code("MED-201").name("Farmacología General").modality(Modality.FACE_TO_FACE)
             .capacity(35).recordStatus(RecordStatus.PUBLISHED).semester(sem2026_1).teacher(t3).category("ESPECIALIDAD").build());
 
-        // Sin docente (para probar metrica)
+        // Materia con docente asignado (t1)
         subjectRepository.save(Subject.builder()
             .code("ISC-401").name("Inteligencia Artificial").modality(Modality.ONLINE)
             .capacity(30).recordStatus(RecordStatus.DRAFT).semester(sem2026_1).teacher(t1).category("ESPECIALIDAD").build());
@@ -439,7 +439,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         log.info("   Total gestiones  : 2 (2025 cerrada, 2026 activa)");
         log.info("   Total materias   : 8");
         log.info("   Total planes eval: 5");
-        log.info("   Total incripciones: 17 (13 activas, 4 historicas)");
+        log.info("   Total inscripciones: 17 (13 activas, 4 historicas)");
         log.info("   Total notas      : 46");
         log.info("   Total asistencias: ~58");
         log.info("============================================");
