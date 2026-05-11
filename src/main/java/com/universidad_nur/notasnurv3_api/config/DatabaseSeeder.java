@@ -444,12 +444,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         log.info("   Total asistencias: ~58");
         log.info("============================================");
         log.info("   ACCESOS:");
-        log.info("   ADMIN   → admin@nur.edu.bo / admin123");
-        log.info("   DOCENTE → cdocente@nur.edu.bo / docente123  (Carlos - ISC)");
-        log.info("   DOCENTE → mlopez@nur.edu.bo / docente123    (Maria - CIV)");
-        log.info("   DOCENTE → jperez@nur.edu.bo / docente123    (Juan - MED)");
-        log.info("   ALUMNO  → {CI}@nur.edu.bo / 1234");
-        log.info("   Ejemplo Estudiante (en riesgo): Ana Condori - CI 23456789");
+        log.info("   ADMIN   → admin@nur.edu.bo");
+        log.info("   DOCENTE → cdocente@nur.edu.bo  (Carlos - ISC)");
+        log.info("   DOCENTE → mlopez@nur.edu.bo    (Maria - CIV)");
+        log.info("   DOCENTE → jperez@nur.edu.bo    (Juan - MED)");
+        log.info("   ALUMNO  → {CI}@nur.edu.bo");
+        log.info("   Nota: por seguridad no se registran contraseñas en logs.");
         log.info("============================================");
     }
 
