@@ -32,7 +32,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
 
     java.util.List<Subject> findBySemesterId(Integer semesterId);
 
-    @Query(value = "SELECT s FROM Subject s JOIN FETCH s.semester sem JOIN FETCH sem.management JOIN FETCH s.teacher",
+    @Query(value = "SELECT DISTINCT s FROM Subject s LEFT JOIN FETCH s.semester sem LEFT JOIN FETCH sem.management LEFT JOIN FETCH s.teacher",
            countQuery = "SELECT COUNT(s) FROM Subject s")
     Page<Subject> findAllWithAssociations(Pageable pageable);
 }
