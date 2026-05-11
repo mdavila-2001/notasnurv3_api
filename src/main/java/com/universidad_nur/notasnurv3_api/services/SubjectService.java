@@ -1,7 +1,6 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
@@ -81,7 +80,7 @@ public class SubjectService {
 
     @Transactional(readOnly = true)
     public Page<SubjectResponse> getAllSubjects(Pageable pageable) {
-        return subjectRepository.findAll(pageable)
+        return subjectRepository.findAllWithAssociations(pageable)
                 .map(this::mapToResponseDTO);
     }
 
