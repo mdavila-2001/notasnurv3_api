@@ -35,7 +35,7 @@ public class Grade extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "component_id", nullable = false)
-    private Component component;
+    private Components components;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)

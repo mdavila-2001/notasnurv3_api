@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,7 @@ import com.universidad_nur.notasnurv3_api.entities.Users;
 public interface UserRepository extends JpaRepository<Users, UUID> {
 
     List<Users> findByRole(Role role);
+    Page<Users> findByRole(Role role, Pageable pageable);
     long countByRole(Role role);
 
 @Procedure(procedureName = "pr_create_user")

@@ -22,5 +22,5 @@ public class EvaluationPlan extends BaseEntity {
     private Subject subject;
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL)
-    private List<Component> components;
+    private List<Components> components;
 }

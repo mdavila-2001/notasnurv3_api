@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.ComponentResponse;
 import com.universidad_nur.notasnurv3_api.dto.EvaluationPlanResponse;
+import com.universidad_nur.notasnurv3_api.entities.Components;
 import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
@@ -61,7 +62,7 @@ public class EvaluationPlanService {
         }
 
         BigDecimal totalWeight = plan.getComponents().stream()
-                .map(com.universidad_nur.notasnurv3_api.entities.Component::getWeight)
+                .map(Components::getWeight)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (totalWeight.compareTo(new BigDecimal("100")) != 0) {

@@ -16,6 +16,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -52,6 +57,27 @@ class UserControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Usuarios obtenidos correctamente"))
                 .andExpect(jsonPath("$.data[0].email").value("ana@mail.com"))
                 .andExpect(jsonPath("$.data[0].password").doesNotExist());
+    }
+
+    @Test
+    void getByRolePaginated_debeRetornarPaginaDeUsuariosSinPassword() throws Exception {
+        UserResponse user = buildUserResponse();
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<UserResponse> page = new PageImpl<>(List.of(user), pageable, 1);
+        when(userService.getUsersByRole(eq("admin"), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/users/role/{roleName}/paginated", "admin")
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Usuarios obtenidos correctamente"))
+                .andExpect(jsonPath("$.data.content[0].email").value("ana@mail.com"))
+                .andExpect(jsonPath("$.data.content[0].password").doesNotExist())
+                .andExpect(jsonPath("$.data.totalElements").value(1))
+                .andExpect(jsonPath("$.data.totalPages").value(1));
+
+        verify(userService).getUsersByRole(eq("admin"), any(Pageable.class));
     }
 
     @Test

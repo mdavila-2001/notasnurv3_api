@@ -1,6 +1,8 @@
 package com.universidad_nur.notasnurv3_api.repositories;
 
 import com.universidad_nur.notasnurv3_api.entities.Subject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -29,4 +31,8 @@ public interface SubjectRepository extends JpaRepository<Subject, Integer> {
     List<Subject> findByTeacher_Id(@Param("teacherId") UUID teacherId);
 
     java.util.List<Subject> findBySemesterId(Integer semesterId);
+
+    @Query(value = "SELECT DISTINCT s FROM Subject s LEFT JOIN FETCH s.semester sem LEFT JOIN FETCH sem.management LEFT JOIN FETCH s.teacher",
+           countQuery = "SELECT COUNT(s) FROM Subject s")
+    Page<Subject> findAllWithAssociations(Pageable pageable);
 }

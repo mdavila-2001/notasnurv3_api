@@ -16,7 +16,7 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 | Método | Endpoint | Rol | Descripción |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/login` | Public | Intercambia credenciales por un JWT Token. |
-| **POST** | `/register` | Admin | Registro de nuevos usuarios (Docentes/Estudiantes). |
+| **POST** | `/logout` | Public | Cierra la sesión del usuario. |
 | **GET** | `/me` | All | Retorna el perfil completo del usuario logueado. |
 
 ### 📊 Módulo de Dashboards (Vistas Consolidadas)
@@ -28,40 +28,144 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 | **GET** | `/teacher` | Teacher | Retorna promedio de asistencia de sus grupos, actas pendientes de cierre y resumen de materias. |
 | **GET** | `/student` | Student | Retorna el **GPA (Promedio) actual**, alertas de riesgo de reprobación y detalle de notas actuales. |
 
-### 🏫 Gestión Académica (Estructura)
-*Base Path: `/api`*
+### 👥 Gestión de Usuarios
+*Base Path: `/api/users`*
 
-| Método | Endpoint | Entidad | Propósito |
+| Método | Endpoint | Rol | Descripción |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/managements` | Admin | Crea una nueva gestión anual (ej: 2026). |
-| **GET** | `/managements/{id}/stats` | Admin | Análisis de tasa de aprobación y alumnos en riesgo por gestión. |
-| **PUT** | `/subjects/{id}/close` | Admin | **Cierre definitivo de acta.** Bloquea ediciones y congela notas. |
-| **PUT** | `/subjects/{id}/activate` | Admin | Cambia materia de DRAFT a ACTIVE si el plan de evaluación suma 100. |
-| **GET** | `/enrollments/my-history` | Estudiante | Kardex oficial por semestres. |
+| **GET** | `/role/{roleName}` | Admin | Obtiene usuarios filtrados por rol (TEACHER, STUDENT, ADMIN). |
+| **GET** | `/role/{roleName}/paginated` | Admin | **Versión paginada** para grandes volúmenes de usuarios. |
+| **POST** | `/` | Admin | Crea nuevos usuarios (Docentes/Estudiantes). |
+| **PUT** | `/{id}` | Admin | Actualiza datos de un usuario existente. |
+| **DELETE** | `/{id}` | Admin | Elimina un usuario del sistema. |
+| **PATCH** | `/{id}/status` | Admin | Cambia el estado de un usuario (ACTIVE, INACTIVE, GRADUATED). |
+
+**Parámetros de Paginación:**
+- `page`: Número de página (default: 0)
+- `size`: Elementos por página (default: 20)
+- `sort`: Ordenación en formato `campo,direccion` (ej. `name,asc` o `name,desc`; default: `name,asc`)
+
+*Ejemplo:* `/api/users/role/TEACHER/paginated?page=0&size=10&sort=name,desc`
+
+### 🏫 Gestión Académica (Estructura)
+*Base Path: `/api/subjects`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | All | Lista todas las materias del sistema. |
+| **GET** | `/paginated` | All | **Versión paginada** para grandes volúmenes de materias. |
+| **POST** | `/` | Admin | Crea una nueva materia. |
+| **GET** | `/{id}` | All | Obtiene detalles de una materia específica. |
+| **PUT** | `/{id}` | Admin | Actualiza datos de una materia. |
+| **DELETE** | `/{id}` | Admin | Elimina una materia. |
+| **PUT** | `/{id}/activate` | Admin/Teacher | Activa materia si el plan de evaluación suma 100. |
+| **PUT** | `/{id}/close` | Admin | **Cierre definitivo de acta.** Bloquea ediciones y congela notas. |
+
+**Parámetros de Paginación:**
+- `page`: Número de página (default: 0)
+- `size`: Elementos por página (default: 20)
+- `sort`: Ordenación en formato `campo,     direccion` (ej. `name,asc` o `name,desc`; default: `name,asc`)
+
+*Ejemplo:* `/api/subjects/paginated?page=0&size=15&sort=name,asc`
+
+### 📋 Gestión de Semestres y Gestiones
+*Base Path: `/api/managements`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/` | Admin | Crea una nueva gestión anual (ej: 2026). |
+| **GET** | `/{id}/stats` | Admin | Análisis de tasa de aprobación y alumnos en riesgo por gestión. |
+
+*Base Path: `/api/semesters`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | All | Lista todos los semestres disponibles. |
+| **POST** | `/` | Admin | Crea un nuevo semestre académico. |
+| **GET** | `/{id}` | All | Obtiene detalles de un semestre específico. |
+| **PUT** | `/{id}` | Admin | Actualiza datos de un semestre. |
+| **DELETE** | `/{id}` | Admin | Elimina un semestre. |
 
 ### 📝 Registro y Evaluación (Operativo)
-*Base Path: `/api`*
+*Base Path: `/api/grades`*
 
-| Método | Endpoint | Propósito | Regla de Negocio Aplicada |
+| Método | Endpoint | Rol | Propósito | Regla de Negocio Aplicada |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/` | Teacher | Carga individual de notas por componente. | Valida que la nota no exceda el peso del componente. |
+
+*Base Path: `/api/attendance`*
+
+| Método | Endpoint | Rol | Propósito | Regla de Negocio Aplicada |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/bulk` | Teacher | Registro masivo de asistencia diaria. | No permite fechas futuras. |
+
+### 📊 Gestión de Planes de Evaluación
+*Base Path: `/api/evaluation-plans`*
+
+| Método | Endpoint | Rol | Propósito |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/attendance/bulk` | Registro masivo de asistencia diaria. | No permite fechas futuras. |
-| **POST** | `/grades` | Carga de notas por componente. | Valida que la nota no exceda el peso del componente. |
-| **GET** | `/enrollments/my-history` | **Kardex del Estudiante.** | Agrupa todo el historial académico por Semestres. |
+| **GET** | `/subject/{subjectId}` | Teacher/Admin | Obtiene el plan de evaluación de una materia. |
+| **POST** | `/` | Teacher | Crea un nuevo plan de evaluación con componentes. |
+| **PUT** | `/{id}` | Teacher | Actualiza componentes y ponderaciones. |
+| **DELETE** | `/{id}` | Admin | Elimina un plan de evaluación. |
+
+### 📈 Gestión de Inscripciones
+*Base Path: `/api/enrollments`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/my-history` | Student | **Kardex oficial del estudiante** por semestres. |
+| **POST** | `/` | Admin | Inscribir estudiantes en materias. |
+| **GET** | `/subject/{subjectId}` | Teacher | Lista estudiantes inscritos en una materia. |
+| **DELETE** | `/{id}` | Admin | Cancela una inscripción. |
 
 ### 🖨️ Módulo de Reportes y Configuración
-*Base Path: `/api`*
+*Base Path: `/api/reports`*
 
-| Método | Endpoint | Tipo | Análisis |
+| Método | Endpoint | Rol | Tipo | Análisis |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/reports/subjects/{id}/pdf` | Export | Genera el **Acta de Notas** legal en formato PDF. |
-| **GET** | `/reports/subjects/{id}/excel` | Export | Genera el reporte detallado de asistencias en Excel. |
-| **GET** | `/settings` | Config | Obtiene parámetros globales (ej: límites de faltas). |
-| **PUT** | `/settings/{key}` | Config | Cambia reglas del sistema en tiempo real sin reiniciar el servidor. |
+| **GET** | `/subjects/{id}/acta-notas/pdf` | Admin/Teacher | Export | Genera el **Acta de Notas** legal en formato PDF. |
+| **GET** | `/subjects/{id}/asistencia/excel` | Admin/Teacher | Export | Genera el reporte detallado de asistencias en Excel. |
+
+*Base Path: `/api/settings`*
+
+| Método | Endpoint | Rol | Tipo | Análisis |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | Admin | Config | Obtiene parámetros globales del sistema. |
+| **PUT** | `/{key}` | Admin | Config | Cambia reglas del sistema en tiempo real sin reiniciar. |
+
+### 🏢 Gestión Institucional
+*Base Path: `/api/faculties`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | All | Lista todas las facultades. |
+| **POST** | `/` | Admin | Crea una nueva facultad. |
+| **PUT** | `/{id}` | Admin | Actualiza datos de una facultad. |
+| **DELETE** | `/{id}` | Admin | Elimina una facultad. |
+
+*Base Path: `/api/degrees`*
+
+| Método | Endpoint | Rol | Propósito |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | All | Lista todas las carreras. |
+| **POST** | `/` | Admin | Crea una nueva carrera. |
+| **PUT** | `/{id}` | Admin | Actualiza datos de una carrera. |
+| **DELETE** | `/{id}` | Admin | Elimina una carrera. |
 
 ## 🛠️ Configuración Global
 El sistema utiliza una tabla `system_setting` para gestionar parámetros sin necesidad de recompilar código:
-- `ABSENCE_LIMIT_FACE_TO_FACE`: Límite de faltas para modalidad presencial.
-- `ABSENCE_LIMIT_BLENDED`: Límite de faltas para modalidad semipresencial.
-- `ABSENCE_LIMIT_ONLINE`: Límite de faltas para modalidad virtual.
+- `NUR_ROUNDING_MODE`: Tipo de redondeo para notas (HALF_UP, HALF_DOWN, etc.).
+- `MAX_ABSENCES_FACE_TO_FACE`: Límite de faltas para modalidad presencial.
+ - `MAX_ABSENCES_BLENDED`: Límite de faltas para modalidad semipresencial.
+ - `MAX_ABSENCES_ONLINE`: Límite de faltas para modalidad virtual.
+ - `ABSENCE_LIMIT_*`: Nomenclatura legacy/alternativa para límites de faltas; mantener solo por compatibilidad si aplica, pero las claves primarias documentadas y priorizadas por el sistema son `MAX_ABSENCES_*`.
+
+## 🔐 Seguridad y Autorizaciones
+- **JWT Tokens**: Autenticación stateless con tokens firmados.
+- **Role-Based Access Control**: Admin, Teacher, Student con permisos específicos.
+- **CORS**: Configurado para desarrollo frontend.
+- **Validaciones**: Input validation y sanitización de datos.
+
 ---
 © 2026 Universidad NUR - Taller V

@@ -17,6 +17,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,6 +60,31 @@ class UserServiceTest {
 
         assertEquals("El rol proporcionado no es válido: bad-role", exception.getMessage());
         verify(userRepository, never()).findByRole(any(Role.class));
+    }
+
+    @Test
+    void getUsersByRolePaginated_debeRetornarPaginaDeUsuariosMapeados() {
+        Users user = buildUser(Role.TEACHER);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Users> repoPage = new PageImpl<>(List.of(user), pageable, 1);
+        when(userRepository.findByRole(Role.TEACHER, pageable)).thenReturn(repoPage);
+
+        Page<UserResponse> result = userService.getUsersByRole("teacher", pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(Role.TEACHER, result.getContent().getFirst().role());
+        verify(userRepository).findByRole(Role.TEACHER, pageable);
+    }
+
+    @Test
+    void getUsersByRolePaginated_debeLanzarExcepcionCuandoRolEsInvalido() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userService.getUsersByRole("bad-role", pageable));
+
+        assertEquals("El rol proporcionado no es válido: bad-role", exception.getMessage());
+        verify(userRepository, never()).findByRole(any(Role.class), any(Pageable.class));
     }
 
     @Test
