@@ -3,12 +3,15 @@ package com.universidad_nur.notasnurv3_api.controllers;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.ComponentRequest;
 import com.universidad_nur.notasnurv3_api.dto.ComponentResponse;
+import com.universidad_nur.notasnurv3_api.dto.ComponentUpdateRequest;
 import com.universidad_nur.notasnurv3_api.services.ComponentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +28,12 @@ public class ComponentController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Componente registrado", componentService.addComponent(request)));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<ApiResponse<ComponentResponse>> update(@PathVariable Integer id, @Valid @RequestBody ComponentUpdateRequest request) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Componente actualizado", componentService.updateComponent(id, request)));
+    }
+
     @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<ApiResponse<Void>> delete(@org.springframework.web.bind.annotation.PathVariable Integer id) {
@@ -32,3 +41,4 @@ public class ComponentController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Componente eliminado", null));
     }
 }
+

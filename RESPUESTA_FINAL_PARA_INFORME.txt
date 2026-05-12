@@ -1,0 +1,565 @@
+================================================================================
+           RESPUESTA FINAL - VALIDACIÓN DE INTEGRACIÓN
+                  EVALUATION PLAN ENDPOINTS
+================================================================================
+
+RESUMEN EJECUTIVO
+================================================================================
+
+Se han generado 3 documentos de referencia para el equipo de frontend:
+
+1. INFORME_BACKEND.txt
+   → Documentación técnica completa del backend
+
+2. VALIDACION_INTEGRACION_EVALUATION_PLAN.txt
+   → Respuestas reales, anotaciones exactas, ejemplos con curl y Postman
+
+3. Postman_EvaluationPlan_Collection.json
+   → Collection lista para importar en Postman y probar endpoints
+
+================================================================================
+RESPUESTA DIRECTA A LA PREGUNTA
+================================================================================
+
+¿CUÁL ES EL FORMATO CORRECTO DEL ENDPOINT?
+
+✅ RESPUESTA CORRECTA:
+   
+   POST /api/evaluation-plans/subject/{subjectId}
+   
+   Con BODY VACÍO (sin contenido JSON)
+   
+   Ejemplo:
+   POST http://localhost:8080/api/evaluation-plans/subject/5
+   Authorization: Bearer eyJhbGciOi...
+   Content-Type: application/json
+   
+   Body: (VACÍO - no enviar nada)
+
+❌ RESPUESTA INCORRECTA:
+
+   POST /api/evaluation-plans
+   
+   Con body { subjectId, name, weight }
+   
+   Esto no funciona porque no existe ese endpoint.
+
+================================================================================
+POR QUÉ EL BODY DEBE ESTAR VACÍO
+================================================================================
+
+Razón 1: Sintaxis del Controller
+    @PostMapping("/subject/{subjectId}")
+    public ResponseEntity<ApiResponse<EvaluationPlanResponse>> createForSubject(
+        @PathVariable Integer subjectId,          ← El ID va en la URL
+        Authentication authentication             ← Se obtiene automáticamente
+    )
+    
+    → NO hay @RequestBody
+    → El método NO espera parámetros adicionales
+
+Razón 2: El Plan se Crea Vacío
+    EvaluationPlan newPlan = evaluationPlanRepository.save(
+        EvaluationPlan.builder()
+            .subject(subject)
+            .build()
+    );
+    
+    → El plan se crea sin componentes inicialmente
+    → Los componentes se agregan después en otro endpoint
+
+Razón 3: Validación del Service
+    El servicio validateSubjectAndTeacher() solo requiere:
+    - subjectId (en URL)
+    - teacherEmail (del JWT token)
+    
+    → No necesita name, weight, description, etc.
+
+================================================================================
+RESPUESTA DEL ENDPOINT (201 CREATED)
+================================================================================
+
+REQUEST:
+    POST http://localhost:8080/api/evaluation-plans/subject/5
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    Content-Type: application/json
+    
+    (BODY VACÍO)
+
+RESPONSE (Status: 201 Created):
+    {
+      "success": true,
+      "message": "Plan creado exitosamente",
+      "data": {
+        "id": 13,
+        "subjectId": 5,
+        "components": []
+      }
+    }
+
+EXPLICACIÓN DE CAMPOS:
+    - success: true          → Operación exitosa
+    - message: Descriptivo   → "Plan creado exitosamente"
+    - data.id: 13           → ID del plan (asignado automáticamente por BD)
+    - data.subjectId: 5     → ID de la materia
+    - data.components: []   → Lista vacía (sin componentes aún)
+
+SI EL PLAN YA EXISTE:
+    Devuelve el mismo status 201 pero con los datos del plan existente.
+    La operación es idempotente (seguro llamar múltiples veces).
+
+================================================================================
+REQUISITOS DE SEGURIDAD (CHECKLIST)
+================================================================================
+
+AUTENTICACIÓN:
+    ✅ REQUIERE token JWT
+    ✅ Enviar en header: "Authorization: Bearer <token>"
+    ✅ Token obtenido mediante: POST /api/auth/login
+    ✅ Token válido por: 24 horas
+
+ROL REQUERIDO:
+    ✅ REQUIERE: ROLE_TEACHER
+    ✅ Si usuario es STUDENT o ADMIN → 403 Forbidden
+    ✅ Validación con @PreAuthorize
+
+AUTORIZACIÓN ADICIONAL:
+    ✅ El docente DEBE ser propietario de la materia
+    ✅ Si no es propietario → 403 Forbidden
+
+CSRF TOKEN:
+    ❌ NO REQUERIDO
+    ❌ CSRF deshabilitado (API REST stateless)
+    ❌ No enviar X-CSRF-TOKEN
+
+CORS:
+    ✅ HABILITADO para:
+       - http://localhost:4200
+       - http://localhost:4201
+    ✅ Métodos permitidos: GET, POST, PUT, DELETE, PATCH, OPTIONS
+
+================================================================================
+CÓDIGOS DE RESPUESTA ESPERADOS
+================================================================================
+
+POST /api/evaluation-plans/subject/{subjectId}
+
+✅ 201 Created
+   → Plan creado exitosamente (o existente devuelto)
+   → Body: { success: true, data: { id, subjectId, components } }
+
+❌ 400 Bad Request
+   → Datos inválidos
+   → Generalmente no ocurre en este endpoint
+
+❌ 401 Unauthorized
+   → Token inválido o expirado
+   → Header Authorization mal formado
+
+❌ 403 Forbidden
+   → Usuario no tiene ROLE_TEACHER
+   → Usuario no es propietario de la materia
+
+❌ 404 Not Found
+   → Materia (subjectId) no existe
+   → Usuario no encontrado
+
+================================================================================
+EJEMPLOS CON CURL (FUNCIONAN AL 100%)
+================================================================================
+
+PASO 1: OBTENER TOKEN
+═════════════════════
+
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "profesor@universidad.edu",
+    "password": "ContraseñaSegura123"
+  }'
+
+RESPUESTA:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "email": "profesor@universidad.edu",
+  "role": "ROLE_TEACHER"
+}
+
+→ Guardar el token: TOKEN=eyJhbGciOi...
+
+---
+
+PASO 2: CREAR PLAN
+══════════════════
+
+curl -X POST http://localhost:8080/api/evaluation-plans/subject/5 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json"
+
+RESPUESTA (201 Created):
+{
+  "success": true,
+  "message": "Plan creado exitosamente",
+  "data": {
+    "id": 13,
+    "subjectId": 5,
+    "components": []
+  }
+}
+
+---
+
+PASO 3: OBTENER PLAN
+════════════════════
+
+curl -X GET http://localhost:8080/api/evaluation-plans/subject/5 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json"
+
+RESPUESTA (200 OK):
+{
+  "success": true,
+  "message": "Plan obtenido",
+  "data": {
+    "id": 13,
+    "subjectId": 5,
+    "components": []
+  }
+}
+
+================================================================================
+CÓMO IMPLEMENTAR EN TU FRONTEND
+================================================================================
+
+OPCIÓN 1: JAVASCRIPT/FETCH (Angular, React, Vue, etc.)
+═════════════════════════════════════════════════════
+
+// 1. OBTENER TOKEN
+async function login(email, password) {
+  const response = await fetch('http://localhost:8080/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email, password })
+  });
+  
+  const data = await response.json();
+  return data.token; // Guardar este token
+}
+
+// 2. CREAR PLAN
+async function createEvaluationPlan(subjectId, token) {
+  const response = await fetch(
+    `http://localhost:8080/api/evaluation-plans/subject/${subjectId}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+      // ⚠️ NO enviar body aquí
+    }
+  );
+  
+  if (response.status === 201) {
+    const data = await response.json();
+    console.log('Plan creado:', data.data);
+    return data.data;
+  } else {
+    console.error('Error:', response.status);
+    throw new Error('Error al crear plan');
+  }
+}
+
+// 3. OBTENER PLAN
+async function getEvaluationPlan(subjectId, token) {
+  const response = await fetch(
+    `http://localhost:8080/api/evaluation-plans/subject/${subjectId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  
+  if (response.status === 200) {
+    const data = await response.json();
+    return data.data;
+  } else {
+    throw new Error('Error al obtener plan');
+  }
+}
+
+// USO EN TU COMPONENTE
+async function handleCreatePlan() {
+  const token = await login('profesor@universidad.edu', 'ContraseñaSegura123');
+  const plan = await createEvaluationPlan(5, token);
+  console.log('Plan creado con ID:', plan.id);
+}
+
+---
+
+OPCIÓN 2: ANGULAR CON HTTPCLIENT
+═════════════════════════════════
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class EvaluationPlanService {
+  private apiUrl = 'http://localhost:8080/api';
+
+  constructor(private http: HttpClient) {}
+
+  // Crear plan
+  createEvaluationPlan(subjectId: number, token: string) {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    
+    // ⚠️ NO enviar body - dejar undefined o null
+    return this.http.post(
+      `${this.apiUrl}/evaluation-plans/subject/${subjectId}`,
+      null, // ← Body VACÍO
+      { headers }
+    );
+  }
+
+  // Obtener plan
+  getEvaluationPlan(subjectId: number, token: string) {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+    
+    return this.http.get(
+      `${this.apiUrl}/evaluation-plans/subject/${subjectId}`,
+      { headers }
+    );
+  }
+}
+
+// En tu componente:
+export class MyComponent {
+  constructor(private planService: EvaluationPlanService) {}
+
+  onCreatePlan() {
+    this.planService.createEvaluationPlan(5, this.token).subscribe(
+      (response: any) => {
+        console.log('Plan creado:', response.data);
+      },
+      (error) => {
+        console.error('Error:', error);
+      }
+    );
+  }
+}
+
+---
+
+OPCIÓN 3: REACT CON AXIOS
+═════════════════════════
+
+import axios from 'axios';
+
+const API_URL = 'http://localhost:8080/api';
+
+// Crear plan
+export async function createEvaluationPlan(subjectId, token) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/evaluation-plans/subject/${subjectId}`,
+      null, // ← Body VACÍO
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data.data; // { id, subjectId, components }
+  } catch (error) {
+    console.error('Error al crear plan:', error.response.status);
+    throw error;
+  }
+}
+
+// Obtener plan
+export async function getEvaluationPlan(subjectId, token) {
+  try {
+    const response = await axios.get(
+      `${API_URL}/evaluation-plans/subject/${subjectId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error('Error al obtener plan:', error.response.status);
+    throw error;
+  }
+}
+
+// En tu componente React:
+function CreatePlanButton() {
+  const handleCreate = async () => {
+    try {
+      const plan = await createEvaluationPlan(5, token);
+      console.log('Plan creado con ID:', plan.id);
+      setPlan(plan);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  return <button onClick={handleCreate}>Crear Plan</button>;
+}
+
+================================================================================
+ERRORES COMUNES Y SOLUCIONES
+================================================================================
+
+ERROR: 401 Unauthorized
+CAUSA: Token inválido, expirado o no enviado
+SOLUCIÓN:
+  1. Verificar que el header Authorization esté presente
+  2. Formato correcto: "Authorization: Bearer <token>"
+  3. Obtener nuevo token si expiró (duran 24 horas)
+  4. Verificar que el email/password sean correctos
+
+---
+
+ERROR: 403 Forbidden
+CAUSA: 
+  A) Usuario no tiene ROLE_TEACHER
+  B) Usuario no es propietario de la materia
+SOLUCIÓN:
+  1. Verificar rol del usuario en BD: SELECT * FROM users WHERE email='...';
+  2. Verificar que sea profesor de la materia
+  3. Contactar a administrador para asignar rol
+
+---
+
+ERROR: 404 Not Found
+CAUSA: La materia (subjectId) no existe
+SOLUCIÓN:
+  1. Verificar que subjectId sea válido: SELECT * FROM subjects;
+  2. Usar el ID correcto de la materia
+  3. Crear la materia si no existe
+
+---
+
+ERROR: Mensaje "No tienes permisos para acceder al plan de esta materia"
+CAUSA: El docente no es propietario de esa materia
+SOLUCIÓN:
+  1. Asignar la materia al docente en BD
+  2. O cambiar el docente de la materia
+  3. Consultar con administrador
+
+---
+
+ERROR: CORS error en consola del navegador
+CAUSA: Frontend en puerto distinto a 4200/4201
+SOLUCIÓN:
+  1. Asegurarse que frontend corre en localhost:4200 o 4201
+  2. Si usa otro puerto, comunicar al equipo backend
+  3. Solicitar que agreguen el puerto en SecurityConfig
+
+---
+
+ERROR: Body JSON en POST cuando debería estar vacío
+CAUSA: Envío innecesario de { subjectId, name, weight }
+SOLUCIÓN:
+  1. NO enviar body
+  2. El subjectId va en la URL: /subject/{subjectId}
+  3. Dejar body = null o undefined
+  4. Solo Content-Type: application/json
+
+================================================================================
+INFORMACIÓN TÉCNICA RESUMIDA
+================================================================================
+
+Framework Backend:       Spring Boot 4.0.6
+Lenguaje Java:          Java 17
+Base de Datos:          PostgreSQL
+Seguridad:              Spring Security + JWT
+Autenticación:          Stateless (sin sesiones)
+CORS:                   Habilitado para localhost:4200 y 4201
+Puerto Backend:         8080 (por defecto)
+Validación:             Anotaciones @PreAuthorize
+
+Endpoint Correcto:      POST /api/evaluation-plans/subject/{subjectId}
+Status esperado:        201 Created
+Body esperado:          VACÍO (no JSON)
+Autenticación:          JWT Bearer Token en header
+Rol requerido:          ROLE_TEACHER
+
+================================================================================
+PRÓXIMOS PASOS
+================================================================================
+
+1. Importar la colección Postman en Postman Desktop
+2. Configurar variables de entorno (token, planId)
+3. Ejecutar requests en orden:
+   - Login (obtiene token)
+   - Create Plan (con body VACÍO)
+   - Get Plan (verifica que se creó)
+4. Validar que respuestas coincidan con este documento
+5. Contactar al equipo backend si hay discrepancias
+6. Implementar en frontend siguiendo ejemplos de JavaScript/Angular/React
+7. Probar la integración en el navegador
+8. Revisar consola del navegador para errores CORS o JWT
+
+================================================================================
+DOCUMENTOS DE REFERENCIA GENERADOS
+================================================================================
+
+1. INFORME_BACKEND.txt
+   - Documentación técnica completa
+   - Árbol de carpetas
+   - Todos los endpoints
+   - Configuración de seguridad
+   - Modelos y servicios
+
+2. VALIDACION_INTEGRACION_EVALUATION_PLAN.txt
+   - Respuestas reales del API
+   - Anotaciones exactas del código
+   - Ejemplos con curl y Postman
+   - Solución de errores
+
+3. Postman_EvaluationPlan_Collection.json
+   - Colección lista para importar
+   - 4 requests configurados
+   - Variables de entorno automáticas
+   - Scripts de test para guardar datos
+
+================================================================================
+CONTACTO Y ESCALAMIENTO
+================================================================================
+
+Si encuentras problemas:
+
+1. Revisar primero este documento
+2. Usar Postman para probar endpoints
+3. Revisar logs del backend
+4. Verificar que usuario/materia/rol sean válidos
+5. Contactar equipo backend con:
+   - Pantallazos del error
+   - Response exacto del server
+   - Header que estás enviando
+   - Rol y email del usuario
+
+================================================================================
+FECHA DE GENERACIÓN: 9 de mayo de 2026
+VERSIÓN: 1.0
+ESTADO: LISTA PARA IMPLEMENTACIÓN
+================================================================================

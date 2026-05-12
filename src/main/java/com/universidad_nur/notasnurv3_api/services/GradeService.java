@@ -68,7 +68,7 @@ public class GradeService {
             throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }
 
-        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
+        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponents_Id(request.enrollmentId(), request.componentId());
 
         Grade grade;
         if (existingGradeOpt.isPresent()) {
@@ -151,7 +151,7 @@ public class GradeService {
             throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }
 
-        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
+        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponents_Id(request.enrollmentId(), request.componentId());
 
         if (existingGradeOpt.isPresent()) {
             Grade existingGrade = existingGradeOpt.get();
