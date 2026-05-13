@@ -64,7 +64,7 @@ Sistema de Gestión Académica Universitario para la Universidad NUR, desarrolla
 **Parámetros de Paginación:**
 - `page`: Número de página (default: 0)
 - `size`: Elementos por página (default: 20)
-- `sort`: Ordenación en formato `campo, direccion` (ej. `name,asc` o `name,desc`; default: `name,asc`)
+- `sort`: Ordenación en formato `campo,     direccion` (ej. `name,asc` o `name,desc`; default: `name,asc`)
 
 *Ejemplo:* `/api/subjects/paginated?page=0&size=15&sort=name,asc`
 
