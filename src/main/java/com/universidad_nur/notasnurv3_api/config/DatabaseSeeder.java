@@ -299,72 +299,72 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         // --- ISC-301 (4 componentes) ---
         // S1: P1=20, P2=22, EF=25, Lab=18 -> 85
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).components(compIsc301.get(0)).teacher(t1).score(new BigDecimal("20")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).components(compIsc301.get(1)).teacher(t1).score(new BigDecimal("22")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).components(compIsc301.get(2)).teacher(t1).score(new BigDecimal("25")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).components(compIsc301.get(3)).teacher(t1).score(new BigDecimal("18")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).component(compIsc301.get(0)).teacher(t1).score(new BigDecimal("20")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).component(compIsc301.get(1)).teacher(t1).score(new BigDecimal("22")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).component(compIsc301.get(2)).teacher(t1).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S1).component(compIsc301.get(3)).teacher(t1).score(new BigDecimal("18")).build());
         // S2: P1=15, P2=18, EF=20, Lab=15 -> 68
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).components(compIsc301.get(0)).teacher(t1).score(new BigDecimal("15")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).components(compIsc301.get(1)).teacher(t1).score(new BigDecimal("18")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).components(compIsc301.get(2)).teacher(t1).score(new BigDecimal("20")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).components(compIsc301.get(3)).teacher(t1).score(new BigDecimal("15")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).component(compIsc301.get(0)).teacher(t1).score(new BigDecimal("15")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).component(compIsc301.get(1)).teacher(t1).score(new BigDecimal("18")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).component(compIsc301.get(2)).teacher(t1).score(new BigDecimal("20")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S2).component(compIsc301.get(3)).teacher(t1).score(new BigDecimal("15")).build());
         // S3: P1=10, P2=12, EF=15, Lab=10 -> 47 (en riesgo academico)
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).components(compIsc301.get(0)).teacher(t1).score(new BigDecimal("10")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).components(compIsc301.get(1)).teacher(t1).score(new BigDecimal("12")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).components(compIsc301.get(2)).teacher(t1).score(new BigDecimal("15")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).components(compIsc301.get(3)).teacher(t1).score(new BigDecimal("10")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).component(compIsc301.get(0)).teacher(t1).score(new BigDecimal("10")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).component(compIsc301.get(1)).teacher(t1).score(new BigDecimal("12")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).component(compIsc301.get(2)).teacher(t1).score(new BigDecimal("15")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S3).component(compIsc301.get(3)).teacher(t1).score(new BigDecimal("10")).build());
         // S8: P1=23, P2=24, EF=28, Lab=19 -> 94
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).components(compIsc301.get(0)).teacher(t1).score(new BigDecimal("23")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).components(compIsc301.get(1)).teacher(t1).score(new BigDecimal("24")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).components(compIsc301.get(2)).teacher(t1).score(new BigDecimal("28")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).components(compIsc301.get(3)).teacher(t1).score(new BigDecimal("19")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).component(compIsc301.get(0)).teacher(t1).score(new BigDecimal("23")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).component(compIsc301.get(1)).teacher(t1).score(new BigDecimal("24")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).component(compIsc301.get(2)).teacher(t1).score(new BigDecimal("28")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc301_S8).component(compIsc301.get(3)).teacher(t1).score(new BigDecimal("19")).build());
 
         // --- ISC-302 (4 componentes) ---
         // S1: Pr1=12, Pr2=13, Par=25, EF=35 -> 85
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).components(compIsc302.get(0)).teacher(t1).score(new BigDecimal("12")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).components(compIsc302.get(1)).teacher(t1).score(new BigDecimal("13")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).components(compIsc302.get(2)).teacher(t1).score(new BigDecimal("25")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).components(compIsc302.get(3)).teacher(t1).score(new BigDecimal("35")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).component(compIsc302.get(0)).teacher(t1).score(new BigDecimal("12")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).component(compIsc302.get(1)).teacher(t1).score(new BigDecimal("13")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).component(compIsc302.get(2)).teacher(t1).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S1).component(compIsc302.get(3)).teacher(t1).score(new BigDecimal("35")).build());
         // S2: Pr1=10, Pr2=11, Par=22, EF=30 -> 73
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).components(compIsc302.get(0)).teacher(t1).score(new BigDecimal("10")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).components(compIsc302.get(1)).teacher(t1).score(new BigDecimal("11")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).components(compIsc302.get(2)).teacher(t1).score(new BigDecimal("22")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).components(compIsc302.get(3)).teacher(t1).score(new BigDecimal("30")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).component(compIsc302.get(0)).teacher(t1).score(new BigDecimal("10")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).component(compIsc302.get(1)).teacher(t1).score(new BigDecimal("11")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).component(compIsc302.get(2)).teacher(t1).score(new BigDecimal("22")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S2).component(compIsc302.get(3)).teacher(t1).score(new BigDecimal("30")).build());
         // S8: Pr1=14, Pr2=14, Par=28, EF=38 -> 94
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).components(compIsc302.get(0)).teacher(t1).score(new BigDecimal("14")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).components(compIsc302.get(1)).teacher(t1).score(new BigDecimal("14")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).components(compIsc302.get(2)).teacher(t1).score(new BigDecimal("28")).build());
-        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).components(compIsc302.get(3)).teacher(t1).score(new BigDecimal("38")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).component(compIsc302.get(0)).teacher(t1).score(new BigDecimal("14")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).component(compIsc302.get(1)).teacher(t1).score(new BigDecimal("14")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).component(compIsc302.get(2)).teacher(t1).score(new BigDecimal("28")).build());
+        gradeRepository.save(Grade.builder().enrollment(encIsc302_S8).component(compIsc302.get(3)).teacher(t1).score(new BigDecimal("38")).build());
 
         // --- CIV-201 (3 componentes) ---
         // S4: Par=22, TP=18, EF=40 -> 80
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).components(compCiv201.get(0)).teacher(t2).score(new BigDecimal("22")).build());
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).components(compCiv201.get(1)).teacher(t2).score(new BigDecimal("18")).build());
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).components(compCiv201.get(2)).teacher(t2).score(new BigDecimal("40")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).component(compCiv201.get(0)).teacher(t2).score(new BigDecimal("22")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).component(compCiv201.get(1)).teacher(t2).score(new BigDecimal("18")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S4).component(compCiv201.get(2)).teacher(t2).score(new BigDecimal("40")).build());
         // S5: Par=25, TP=19, EF=45 -> 89
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).components(compCiv201.get(0)).teacher(t2).score(new BigDecimal("25")).build());
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).components(compCiv201.get(1)).teacher(t2).score(new BigDecimal("19")).build());
-        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).components(compCiv201.get(2)).teacher(t2).score(new BigDecimal("45")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).component(compCiv201.get(0)).teacher(t2).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).component(compCiv201.get(1)).teacher(t2).score(new BigDecimal("19")).build());
+        gradeRepository.save(Grade.builder().enrollment(encCiv201_S5).component(compCiv201.get(2)).teacher(t2).score(new BigDecimal("45")).build());
 
         // --- MED-101 (3 componentes) ---
         // S6: PT=30, PP=25, EF=25 -> 80
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).components(compMed101.get(0)).teacher(t3).score(new BigDecimal("30")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).components(compMed101.get(1)).teacher(t3).score(new BigDecimal("25")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).components(compMed101.get(2)).teacher(t3).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).component(compMed101.get(0)).teacher(t3).score(new BigDecimal("30")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).component(compMed101.get(1)).teacher(t3).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S6).component(compMed101.get(2)).teacher(t3).score(new BigDecimal("25")).build());
         // S7: PT=35, PP=28, EF=28 -> 91
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).components(compMed101.get(0)).teacher(t3).score(new BigDecimal("35")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).components(compMed101.get(1)).teacher(t3).score(new BigDecimal("28")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).components(compMed101.get(2)).teacher(t3).score(new BigDecimal("28")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).component(compMed101.get(0)).teacher(t3).score(new BigDecimal("35")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).component(compMed101.get(1)).teacher(t3).score(new BigDecimal("28")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed101_S7).component(compMed101.get(2)).teacher(t3).score(new BigDecimal("28")).build());
 
         // --- MED-201 (3 componentes) ---
         // S6: Prac=15, Par=25, EF=40 -> 80
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).components(compMed201.get(0)).teacher(t3).score(new BigDecimal("15")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).components(compMed201.get(1)).teacher(t3).score(new BigDecimal("25")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).components(compMed201.get(2)).teacher(t3).score(new BigDecimal("40")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).component(compMed201.get(0)).teacher(t3).score(new BigDecimal("15")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).component(compMed201.get(1)).teacher(t3).score(new BigDecimal("25")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S6).component(compMed201.get(2)).teacher(t3).score(new BigDecimal("40")).build());
         // S7: Prac=18, Par=27, EF=45 -> 90
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).components(compMed201.get(0)).teacher(t3).score(new BigDecimal("18")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).components(compMed201.get(1)).teacher(t3).score(new BigDecimal("27")).build());
-        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).components(compMed201.get(2)).teacher(t3).score(new BigDecimal("45")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).component(compMed201.get(0)).teacher(t3).score(new BigDecimal("18")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).component(compMed201.get(1)).teacher(t3).score(new BigDecimal("27")).build());
+        gradeRepository.save(Grade.builder().enrollment(encMed201_S7).component(compMed201.get(2)).teacher(t3).score(new BigDecimal("45")).build());
 
         // ========== 10. ASISTENCIAS ==========
         LocalDate[] isc301Dates = {

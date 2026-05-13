@@ -129,8 +129,8 @@ class DashboardServiceTest {
                 .components(List.of(components1, components2))
                 .build();
 
-        Grade grade1 = Grade.builder().components(components1).teacher(teacher).score(new BigDecimal("40.00")).build();
-        Grade grade2 = Grade.builder().components(components2).teacher(teacher).score(new BigDecimal("60.00")).build();
+        Grade grade1 = Grade.builder().component(components1).teacher(teacher).score(new BigDecimal("40.00")).build();
+        Grade grade2 = Grade.builder().component(components2).teacher(teacher).score(new BigDecimal("60.00")).build();
 
         Enrollment enrollment1 = Enrollment.builder()
                 .id(enrollmentId1)

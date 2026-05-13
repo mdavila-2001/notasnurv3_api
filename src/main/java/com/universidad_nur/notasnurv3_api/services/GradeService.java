@@ -78,7 +78,7 @@ public class GradeService {
         } else {
             grade = Grade.builder()
                     .enrollment(enrollment)
-                    .components(components)
+                    .component(components)
                     .teacher(teacher)
                     .score(request.score())
                     .build();
@@ -89,7 +89,7 @@ public class GradeService {
         return new GradeResponse(
                 saved.getId(),
                 saved.getEnrollment().getId(),
-                saved.getComponents().getId(),
+                saved.getComponent().getId(),
                 saved.getTeacher().getId(),
                 saved.getScore()
         );
@@ -112,7 +112,7 @@ public class GradeService {
                 .map(grade -> new GradeResponse(
                         grade.getId(),
                         grade.getEnrollment().getId(),
-                        grade.getComponents().getId(),
+                        grade.getComponent().getId(),
                         grade.getTeacher().getId(),
                         grade.getScore()
                 ))
@@ -161,7 +161,7 @@ public class GradeService {
         } else {
             return Grade.builder()
                     .enrollment(enrollment)
-                    .components(components)
+                    .component(components)
                     .teacher(teacher)
                     .score(request.score())
                     .build();
