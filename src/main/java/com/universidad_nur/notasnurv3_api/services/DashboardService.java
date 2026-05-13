@@ -28,8 +28,8 @@ public class DashboardService {
     private final AttendanceRepository attendanceRepository;
     private final ManagementRepository managementRepository;
     private final UserRepository userRepository;
-        private final UserDegreeRepository userDegreeRepository;
-        private final EvaluationPlanRepository evaluationPlanRepository;
+    private final UserDegreeRepository userDegreeRepository;
+    private final EvaluationPlanRepository evaluationPlanRepository;
     private final SystemSettingService systemSettingService;
 
     @Transactional(readOnly = true)
@@ -155,9 +155,9 @@ public class DashboardService {
                     List<Grade> grades = e.getGrades();
                     List<GradeComponentDTO> breakdown = grades.stream()
                             .map(g -> GradeComponentDTO.builder()
-                                    .name(g.getComponents().getName())
+                                    .name(g.getComponent().getName())
                                     .score(g.getScore().doubleValue())
-                                    .weight(g.getComponents().getWeight().doubleValue())
+                                    .weight(g.getComponent().getWeight().doubleValue())
                                     .build())
                             .toList();
 
@@ -246,7 +246,7 @@ public class DashboardService {
 
                 Set<Integer> gradedComponentIds = enrollments.stream()
                                 .flatMap(enrollment -> enrollment.getGrades().stream())
-                                .map(grade -> grade.getComponents().getId())
+                                .map(grade -> grade.getComponent().getId())
                                 .collect(Collectors.toSet());
 
                 double totalWeight = evaluationPlan.getComponents().stream()
