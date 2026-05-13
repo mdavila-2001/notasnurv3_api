@@ -85,6 +85,13 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
+    public List<SubjectResponse> getMySubjects(Users currentUser) {
+        return subjectRepository.findByTeacher_Id(currentUser.getId()).stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public SubjectResponse getSubjectById(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada con ID: " + id));
