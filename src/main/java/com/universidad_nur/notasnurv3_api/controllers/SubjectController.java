@@ -3,6 +3,7 @@ package com.universidad_nur.notasnurv3_api.controllers;
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
 import com.universidad_nur.notasnurv3_api.dto.SubjectRequest;
 import com.universidad_nur.notasnurv3_api.dto.SubjectResponse;
+import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.services.SubjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,6 +42,12 @@ public class SubjectController {
     public ResponseEntity<Page<SubjectResponse>> getAllPaginated(
             @PageableDefault(size = 20, sort = "name") Pageable pageable) {
         return ResponseEntity.ok(subjectService.getAllSubjects(pageable));
+    }
+
+    @GetMapping("/my-subjects")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<SubjectResponse>> getMySubjects(@AuthenticationPrincipal Users currentUser) {
+        return ResponseEntity.ok(subjectService.getMySubjects(currentUser));
     }
 
 

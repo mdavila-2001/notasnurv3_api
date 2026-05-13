@@ -23,7 +23,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
-            LEFT JOIN FETCH g.components
+            LEFT JOIN FETCH g.component
             WHERE s.id = :subjectId
             """)
         List<Enrollment> findBySubjectId(@Param("subjectId") Integer subjectId);
@@ -40,7 +40,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
-            LEFT JOIN FETCH g.components
+            LEFT JOIN FETCH g.component
             WHERE ar.user.id = :studentId
             """)
         List<Enrollment> findByAcademicRecord_UserId(@Param("studentId") UUID studentId);
@@ -53,7 +53,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
                 LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
                 LEFT JOIN FETCH e.grades g
-                LEFT JOIN FETCH g.components
+                LEFT JOIN FETCH g.component
                 WHERE e.status = :status
                 """)
             List<Enrollment> findByStatusWithDetails(@Param("status") EnrollmentStatus status);
@@ -66,7 +66,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
                 LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
                 LEFT JOIN FETCH e.grades g
-                LEFT JOIN FETCH g.components
+                LEFT JOIN FETCH g.component
                 WHERE s.teacher.id = :teacherId
                 """)
             List<Enrollment> findBySubjectTeacherIdWithDetails(@Param("teacherId") UUID teacherId);
