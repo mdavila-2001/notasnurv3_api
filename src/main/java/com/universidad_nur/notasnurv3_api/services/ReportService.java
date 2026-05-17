@@ -42,13 +42,20 @@ public class ReportService {
     private final EnrollmentRepository enrollmentRepository;
     private final AttendanceRepository attendanceRepository;
 
-    @Transactional(readOnly = true)
+    // =========================================================================
+    // FASE DE PROCESAMIENTO PESADO (MÉTODOS PÚBLICOS - SIN @TRANSACTIONAL)
+    // =========================================================================
+
+    /**
+     * Genera el PDF del Acta de Notas utilizando iText de forma aislada.
+     * NO posee transacciones activas para no bloquear conexiones de base de datos.
+     */
     public byte[] generateActaNotasPdf(Integer subjectId) {
-        Subject subject = subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
+        // 1. Fase rápida transaccional: Extrae la data requerida y libera la DB de inmediato
+        Subject subject = this.getSubjectForReport(subjectId);
+        List<Enrollment> enrollments = this.getEnrollmentsForReport(subjectId);
 
-        List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
-
+        // 2. Fase pesada de CPU: Construcción del documento PDF en memoria local
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4);
             PdfWriter.getInstance(document, baos);
@@ -92,17 +99,18 @@ public class ReportService {
         }
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * Genera el reporte de Asistencias en Excel utilizando Apache POI.
+     * NO posee transacciones activas durante la manipulación de libros y hojas.
+     */
     public byte[] generateAsistenciaExcel(Integer subjectId) {
-        if (!subjectRepository.existsById(subjectId)) {
-            throw new ResourceNotFoundException("Materia no encontrada.");
-        }
+        // 1. Fase rápida transaccional: Consulta veloz de datos relacionales
+        List<Enrollment> enrollments = this.getEnrollmentsWithSubjectValidation(subjectId);
+        
+        List<UUID> enrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
+        Map<UUID, Long> absencesByEnrollmentId = this.getAbsencesContext(enrollmentIds);
 
-        List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
-        Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
-                enrollments.stream().map(Enrollment::getId).toList()
-        );
-
+        // 2. Fase pesada de CPU: Generación de celdas y auto-ajuste de columnas de Excel
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Asistencias");
 
@@ -140,17 +148,44 @@ public class ReportService {
         }
     }
 
-    private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
+    // =========================================================================
+    // FASE DE ACCESO ÁGIL A LA DB (MÉTODOS PRIVADOS - @TRANSACTIONAL READ-ONLY)
+    // =========================================================================
+
+    @Transactional(readOnly = true)
+    protected Subject getSubjectForReport(Integer subjectId) {
+        return subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
+    }
+
+    @Transactional(readOnly = true)
+    protected List<Enrollment> getEnrollmentsForReport(Integer subjectId) {
+        return enrollmentRepository.findBySubjectId(subjectId);
+    }
+
+    @Transactional(readOnly = true)
+    protected List<Enrollment> getEnrollmentsWithSubjectValidation(Integer subjectId) {
+        if (!subjectRepository.existsById(subjectId)) {
+            throw new ResourceNotFoundException("Materia no encontrada.");
+        }
+        return enrollmentRepository.findBySubjectId(subjectId);
+    }
+
+    @Transactional(readOnly = true)
+    protected Map<UUID, Long> getAbsencesContext(List<UUID> enrollmentIds) {
         if (enrollmentIds.isEmpty()) {
             return Map.of();
         }
-
         return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
                 .collect(Collectors.toMap(
                         row -> (UUID) row[0],
                         row -> ((Number) row[1]).longValue()
                 ));
     }
+
+    // =========================================================================
+    // MÉTODOS AUXILIARES
+    // =========================================================================
 
     private void addTableHeader(PdfPTable table, String... headers) {
         for (String header : headers) {
