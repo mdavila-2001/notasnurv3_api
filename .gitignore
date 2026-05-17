@@ -33,6 +33,7 @@ build/
 .vscode/
 
 # Ignorar .env files (Application local y dev properties)
+application.properties
 application-dev.properties
 application-local.properties
 application-prod.properties
