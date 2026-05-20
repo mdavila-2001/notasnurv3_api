@@ -47,52 +47,85 @@ public class AttendanceService {
             throw new UnauthorizedAccessException("No tienes permisos para registrar asistencia en esta materia.");
         }
 
-        for (StudentAttendance item : request.records()) {
-            processStudentAttendance(item, request.date(), subject.getId(), subject.getModality());
-        }
-    }
+        // 1. Pre-cargar todas las inscripciones de la materia en un mapa para evitar findById individuales
+        java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subject.getId());
+        java.util.Map<java.util.UUID, Enrollment> enrollmentMap = enrollments.stream()
+                .collect(java.util.stream.Collectors.toMap(Enrollment::getId, e -> e));
 
-    private void processStudentAttendance(StudentAttendance item, LocalDate date, Integer subjectId, Modality modality) {
-        Enrollment enrollment = enrollmentRepository.findById(item.enrollmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada para ID: " + item.enrollmentId()));
+        java.util.List<java.util.UUID> enrollmentIdsInRequest = request.records().stream()
+                .map(StudentAttendance::enrollmentId)
+                .toList();
 
-        if (!enrollment.getSubject().getId().equals(subjectId)) {
-            throw new InvalidOperationException("La inscripción " + item.enrollmentId() + " no pertenece a la materia.");
-        }
-
-        // Upsert Attendance
-        Optional<Attendance> existingOpt = attendanceRepository.findByEnrollmentIdAndDate(item.enrollmentId(), date);
-        Attendance attendance;
-        if (existingOpt.isPresent()) {
-            attendance = existingOpt.get();
-            attendance.setStatus(item.status());
-        } else {
-            attendance = Attendance.builder()
-                    .enrollment(enrollment)
-                    .date(date)
-                    .status(item.status())
-                    .build();
-        }
-        attendanceRepository.save(attendance);
-
-        reconcileEnrollmentStatus(enrollment, modality);
-    }
-
-    private void reconcileEnrollmentStatus(Enrollment enrollment, Modality modality) {
-        long totalAbsences = attendanceRepository.countByEnrollmentIdAndStatus(enrollment.getId(), AttendanceStatus.ABSENT);
-        int limit = systemSettingService.getAbsenceLimit(modality);
-
-        if (totalAbsences > limit) {
-            if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
-                enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
-                enrollmentRepository.save(enrollment);
+        // Validar que todas las inscripciones enviadas en la petición correspondan a esta materia
+        for (java.util.UUID rId : enrollmentIdsInRequest) {
+            if (!enrollmentMap.containsKey(rId)) {
+                throw new InvalidOperationException("La inscripción " + rId + " no pertenece a la materia.");
             }
-            return;
         }
 
-        if (enrollment.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE) {
-            enrollment.setStatus(EnrollmentStatus.ACTIVE);
-            enrollmentRepository.save(enrollment);
+        // 2. Pre-cargar en masa asistencias existentes para la fecha y estudiantes
+        java.util.List<Attendance> existingAttendances = attendanceRepository.findByEnrollmentIdInAndDate(enrollmentIdsInRequest, request.date());
+        java.util.Map<java.util.UUID, Attendance> existingAttendanceMap = existingAttendances.stream()
+                .collect(java.util.stream.Collectors.toMap(a -> a.getEnrollment().getId(), a -> a));
+
+        // 3. Procesar y preparar entidades de asistencia para guardar en masa
+        java.util.List<Attendance> attendancesToSave = new java.util.ArrayList<>();
+        for (StudentAttendance item : request.records()) {
+            Enrollment enrollment = enrollmentMap.get(item.enrollmentId());
+            Attendance attendance = existingAttendanceMap.get(item.enrollmentId());
+
+            if (attendance != null) {
+                attendance.setStatus(item.status());
+            } else {
+                attendance = Attendance.builder()
+                        .enrollment(enrollment)
+                        .date(request.date())
+                        .status(item.status())
+                        .build();
+            }
+            attendancesToSave.add(attendance);
         }
+        attendanceRepository.saveAll(attendancesToSave);
+
+        // 4. Pre-cargar el conteo total acumulado de inasistencias en una única consulta agregada
+        java.util.List<java.util.UUID> allEnrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
+        java.util.Map<java.util.UUID, Long> absencesCountMap = countAbsencesByEnrollmentIds(allEnrollmentIds);
+
+        // 5. Conciliar estados de las inscripciones y persistir cambios en masa
+        java.util.List<Enrollment> enrollmentsToUpdate = new java.util.ArrayList<>();
+        int limit = systemSettingService.getAbsenceLimit(subject.getModality());
+
+        for (Enrollment enrollment : enrollments) {
+            long totalAbsences = absencesCountMap.getOrDefault(enrollment.getId(), 0L);
+
+            if (totalAbsences > limit) {
+                if (enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
+                    enrollment.setStatus(EnrollmentStatus.FAILED_BY_ATTENDANCE);
+                    enrollmentsToUpdate.add(enrollment);
+                }
+            } else {
+                if (enrollment.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE) {
+                    enrollment.setStatus(EnrollmentStatus.ACTIVE);
+                    enrollmentsToUpdate.add(enrollment);
+                }
+            }
+        }
+
+        if (!enrollmentsToUpdate.isEmpty()) {
+            enrollmentRepository.saveAll(enrollmentsToUpdate);
+        }
+    }
+
+    private java.util.Map<java.util.UUID, Long> countAbsencesByEnrollmentIds(java.util.List<java.util.UUID> enrollmentIds) {
+        if (enrollmentIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+
+        return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        row -> (java.util.UUID) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
     }
 }
+

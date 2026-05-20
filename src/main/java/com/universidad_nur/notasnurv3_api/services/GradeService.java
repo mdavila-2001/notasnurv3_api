@@ -34,56 +34,10 @@ public class GradeService {
 
     @Transactional
     public GradeResponse saveGrade(GradeRequest request, String teacherEmail) {
-        Enrollment enrollment = enrollmentRepository.findById(request.enrollmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada."));
-
-        Subject subject = enrollment.getSubject();
-
-        if (subject.getRecordStatus() == RecordStatus.CLOSED) {
-            throw new UnauthorizedAccessException("La materia se encuentra cerrada. No se pueden modificar calificaciones.");
-        }
-
         Users teacher = userRepository.findByEmail(teacherEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
 
-        if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
-            throw new UnauthorizedAccessException("No tienes permisos para registrar notas en esta materia.");
-        }
-
-        Components components = componentRepository.findById(request.componentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Componente no encontrado."));
-
-        // Validar que el componente pertenece a la materia en la que el estudiante está inscrito
-        if (!components.getPlan().getSubject().getId().equals(subject.getId())) {
-            throw new InvalidOperationException("El componente no pertenece a la materia inscrita.");
-        }
-
-        // Validar que la nota sea mayor o igual a cero
-        if (request.score().compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidOperationException("La nota no puede ser negativa.");
-        }
-
-        // Validar que la nota no sobrepase el peso del componente
-        if (request.score().compareTo(components.getWeight()) > 0) {
-            throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
-        }
-
-        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
-
-        Grade grade;
-        if (existingGradeOpt.isPresent()) {
-            grade = existingGradeOpt.get();
-            grade.setScore(request.score());
-            grade.setTeacher(teacher);
-        } else {
-            grade = Grade.builder()
-                    .enrollment(enrollment)
-                    .component(components)
-                    .teacher(teacher)
-                    .score(request.score())
-                    .build();
-        }
-
+        Grade grade = validateAndPrepareGrade(request, teacher);
         Grade saved = gradeRepository.save(grade);
 
         return new GradeResponse(
@@ -102,7 +56,7 @@ public class GradeService {
 
         // Validar todas las solicitudes antes de guardar
         List<Grade> gradesToSave = gradeRequests.stream()
-                .map(request -> validateAndCreateGrade(request, teacher))
+                .map(request -> validateAndPrepareGrade(request, teacher))
                 .toList();
 
         // Guardar todas las notas en una sola transacción
@@ -119,7 +73,7 @@ public class GradeService {
                 .toList();
     }
 
-    private Grade validateAndCreateGrade(GradeRequest request, Users teacher) {
+    private Grade validateAndPrepareGrade(GradeRequest request, Users teacher) {
         Enrollment enrollment = enrollmentRepository.findById(request.enrollmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada."));
 
@@ -168,3 +122,4 @@ public class GradeService {
         }
     }
 }
+
