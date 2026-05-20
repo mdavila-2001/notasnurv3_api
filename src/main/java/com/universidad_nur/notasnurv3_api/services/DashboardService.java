@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.universidad_nur.notasnurv3_api.entities.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +21,6 @@ import com.universidad_nur.notasnurv3_api.dto.dashboard.EnrolledSubjectDetailDTO
 import com.universidad_nur.notasnurv3_api.dto.dashboard.GradeComponentDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.ManagementSummaryDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.SubjectSummaryDTO;
-import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
-import com.universidad_nur.notasnurv3_api.entities.AttendanceStatus;
-import com.universidad_nur.notasnurv3_api.entities.Degree;
-import com.universidad_nur.notasnurv3_api.entities.Enrollment;
-import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
-import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
-import com.universidad_nur.notasnurv3_api.entities.Grade;
-import com.universidad_nur.notasnurv3_api.entities.ProfileType;
-import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
-import com.universidad_nur.notasnurv3_api.entities.Role;
-import com.universidad_nur.notasnurv3_api.entities.Semester;
-import com.universidad_nur.notasnurv3_api.entities.Subject;
-import com.universidad_nur.notasnurv3_api.entities.UserDegree;
-import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
@@ -77,20 +64,26 @@ public class DashboardService {
                 .distinct()
                 .count();
 
-        // 🚀 RESOLUCIÓN DEL N+1: Una sola query calcula los conteos y los promedios históricos
-        List<ManagementSummaryDTO> managementSummaries = managementRepository.getManagementSummaries();
+        List<Management> allManagements = managementRepository.findAll();
+        List<ManagementSummaryDTO> managementSummaries = allManagements.stream()
+                .map(m -> {
+                    long studentCount = enrollmentRepository.countBySubject_Semester_ManagementId(m.getId());
+                    long passed = enrollmentRepository.countBySubject_Semester_ManagementIdAndStatus(m.getId(), EnrollmentStatus.PASSED);
+                    double passRate = studentCount == 0 ? 0.0 : ((double) passed / studentCount) * 100;
+                    return ManagementSummaryDTO.builder()
+                            .id(m.getId())
+                            .year(m.getYear())
+                            .status(m.getSemesters().isEmpty() ? "CONFIGURING" : "ACTIVE")
+                            .studentCount(studentCount)
+                            .passRate(passRate)
+                            .build();
+                }).toList();
 
-        // 🚀 OPTIMIZACIÓN CRÍTICA: Calculamos la tasa global usando agregaciones directas desde el DTO obtenido, 
-        // evitando el catastrófico enrollmentRepository.findAll() que saturaba la memoria RAM.
-        long totalHistoricalStudents = 0;
-        double combinedPassRateSum = 0.0;
-        
-        for (ManagementSummaryDTO summary : managementSummaries) {
-            totalHistoricalStudents += summary.getStudentCount();
-            combinedPassRateSum += (summary.getPassRate() * summary.getStudentCount());
-        }
-        
-        double globalPassRate = totalHistoricalStudents == 0 ? 0.0 : (combinedPassRateSum / totalHistoricalStudents);
+        // Para simplificar, tomamos la tasa global de todas las inscripciones históricas
+        long totalEnrollmentsCount = enrollmentRepository.count();
+        long totalPassedCount = enrollmentRepository.countByStatus(EnrollmentStatus.PASSED);
+        double globalPassRate = totalEnrollmentsCount == 0 ? 0.0 : ((double) totalPassedCount / totalEnrollmentsCount) * 100;
+
 
         return DashboardAdminDTO.builder()
                 .totalStudents(totalStudents)

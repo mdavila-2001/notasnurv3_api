@@ -148,6 +148,7 @@ public class EnrollmentService {
 
             return StudentResponseDTO.builder()
                     .studentId(student.getId())
+                    .enrollmentId(enrollment.getId())
                     .fullName(student.getFullName())
                     .ci(student.getCi())
                     .email(student.getEmail())
