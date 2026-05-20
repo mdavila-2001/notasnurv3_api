@@ -6,6 +6,8 @@ import com.universidad_nur.notasnurv3_api.exceptions.InvalidDateRangeException;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidSemesterNumberException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     
     private String resolveResponseStatusMessage(ResponseStatusException ex) {
@@ -60,6 +63,26 @@ public class GlobalExceptionHandler {
     // 3. Atrapa nuestros RuntimeExceptions (las reglas de negocio que programamos)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeExceptions(RuntimeException ex) {
+        // Si no es un RuntimeException genérico directo, ni una excepción de nuestro paquete de excepciones personalizadas,
+        // entonces es un error inesperado del sistema (ej. NullPointerException, IllegalArgumentException).
+        if (ex.getClass() != RuntimeException.class && !ex.getClass().getName().startsWith("com.universidad_nur.notasnurv3_api.exceptions.")) {
+            return handleAllExceptions(ex);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, ex.getMessage(), null));
+    }
+
+    // 4. Atrapa excepciones inesperadas del sistema de forma segura con HTTP 500
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
+        log.error("Excepción inesperada no controlada: ", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse<>(false, "Ocurrió un error inesperado en el servidor", null));
+    }
+
+    // 5. Atrapa explícitamente excepciones de número de semestre inválido
+    @ExceptionHandler(InvalidSemesterNumberException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidSemesterNumberException(InvalidSemesterNumberException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }

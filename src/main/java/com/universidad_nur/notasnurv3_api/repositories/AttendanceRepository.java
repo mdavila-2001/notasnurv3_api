@@ -34,4 +34,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
                         """)
         java.util.List<Object[]> countByEnrollmentIdsAndStatus(@Param("enrollmentIds") Collection<UUID> enrollmentIds,
                                                                                                                      @Param("status") AttendanceStatus status);
+
+    java.util.List<Attendance> findByEnrollmentIdInAndDate(Collection<UUID> enrollmentIds, LocalDate date);
 }
+

@@ -91,7 +91,6 @@ class DashboardServiceTest {
                 .thenReturn(List.<Object[]>of(new Object[]{enrollmentId, 4L}));
         when(systemSettingService.getAbsenceLimit(Modality.FACE_TO_FACE)).thenReturn(5);
         when(managementRepository.findAll()).thenReturn(List.of());
-        when(enrollmentRepository.findAll()).thenReturn(List.of());
 
         DashboardAdminDTO dashboard = dashboardService.getAdminDashboard();
 
