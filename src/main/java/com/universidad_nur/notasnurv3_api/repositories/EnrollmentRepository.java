@@ -20,6 +20,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             FROM Enrollment e
             LEFT JOIN FETCH e.academicRecord ar
             LEFT JOIN FETCH ar.user
+            LEFT JOIN FETCH ar.degree
             LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
@@ -37,6 +38,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             FROM Enrollment e
             LEFT JOIN FETCH e.academicRecord ar
             LEFT JOIN FETCH ar.user
+            LEFT JOIN FETCH ar.degree
             LEFT JOIN FETCH e.subject s
                 LEFT JOIN FETCH s.semester
             LEFT JOIN FETCH e.grades g
@@ -88,4 +90,9 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
             List<Object[]> countBySubjectIds(@Param("subjectIds") Collection<Integer> subjectIds);
 
         long countBySubjectId(Integer subjectId);
+
+    long countByStatus(EnrollmentStatus status);
+    long countBySubject_Semester_ManagementId(Integer managementId);
+    long countBySubject_Semester_ManagementIdAndStatus(Integer managementId, EnrollmentStatus status);
 }
+

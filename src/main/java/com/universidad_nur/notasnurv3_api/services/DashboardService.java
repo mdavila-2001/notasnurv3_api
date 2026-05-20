@@ -77,20 +77,26 @@ public class DashboardService {
                 .distinct()
                 .count();
 
-        // 🚀 RESOLUCIÓN DEL N+1: Una sola query calcula los conteos y los promedios históricos
-        List<ManagementSummaryDTO> managementSummaries = managementRepository.getManagementSummaries();
+        List<Management> allManagements = managementRepository.findAll();
+        List<ManagementSummaryDTO> managementSummaries = allManagements.stream()
+                .map(m -> {
+                    long studentCount = enrollmentRepository.countBySubject_Semester_ManagementId(m.getId());
+                    long passed = enrollmentRepository.countBySubject_Semester_ManagementIdAndStatus(m.getId(), EnrollmentStatus.PASSED);
+                    double passRate = studentCount == 0 ? 0.0 : ((double) passed / studentCount) * 100;
+                    return ManagementSummaryDTO.builder()
+                            .id(m.getId())
+                            .year(m.getYear())
+                            .status(m.getSemesters().isEmpty() ? "CONFIGURING" : "ACTIVE")
+                            .studentCount(studentCount)
+                            .passRate(passRate)
+                            .build();
+                }).toList();
 
-        // 🚀 OPTIMIZACIÓN CRÍTICA: Calculamos la tasa global usando agregaciones directas desde el DTO obtenido, 
-        // evitando el catastrófico enrollmentRepository.findAll() que saturaba la memoria RAM.
-        long totalHistoricalStudents = 0;
-        double combinedPassRateSum = 0.0;
-        
-        for (ManagementSummaryDTO summary : managementSummaries) {
-            totalHistoricalStudents += summary.getStudentCount();
-            combinedPassRateSum += (summary.getPassRate() * summary.getStudentCount());
-        }
-        
-        double globalPassRate = totalHistoricalStudents == 0 ? 0.0 : (combinedPassRateSum / totalHistoricalStudents);
+        // Para simplificar, tomamos la tasa global de todas las inscripciones históricas
+        long totalEnrollmentsCount = enrollmentRepository.count();
+        long totalPassedCount = enrollmentRepository.countByStatus(EnrollmentStatus.PASSED);
+        double globalPassRate = totalEnrollmentsCount == 0 ? 0.0 : ((double) totalPassedCount / totalEnrollmentsCount) * 100;
+
 
         return DashboardAdminDTO.builder()
                 .totalStudents(totalStudents)
