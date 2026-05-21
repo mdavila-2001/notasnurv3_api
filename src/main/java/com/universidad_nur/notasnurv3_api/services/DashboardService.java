@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.universidad_nur.notasnurv3_api.entities.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +21,6 @@ import com.universidad_nur.notasnurv3_api.dto.dashboard.EnrolledSubjectDetailDTO
 import com.universidad_nur.notasnurv3_api.dto.dashboard.GradeComponentDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.ManagementSummaryDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.SubjectSummaryDTO;
-import com.universidad_nur.notasnurv3_api.entities.AcademicStatus;
-import com.universidad_nur.notasnurv3_api.entities.AttendanceStatus;
-import com.universidad_nur.notasnurv3_api.entities.Degree;
-import com.universidad_nur.notasnurv3_api.entities.Enrollment;
-import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
-import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
-import com.universidad_nur.notasnurv3_api.entities.Grade;
-import com.universidad_nur.notasnurv3_api.entities.ProfileType;
-import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
-import com.universidad_nur.notasnurv3_api.entities.Role;
-import com.universidad_nur.notasnurv3_api.entities.Semester;
-import com.universidad_nur.notasnurv3_api.entities.Subject;
-import com.universidad_nur.notasnurv3_api.entities.UserDegree;
-import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
