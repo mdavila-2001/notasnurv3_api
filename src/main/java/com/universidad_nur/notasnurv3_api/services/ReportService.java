@@ -48,8 +48,9 @@ public class ReportService {
 
     /**
      * Genera el PDF del Acta de Notas utilizando iText de forma aislada.
-     * NO posee transacciones activas para no bloquear conexiones de base de datos.
+     * Anotado con @Transactional(readOnly = true) para resolver la auto-invocación AOP.
      */
+    @Transactional(readOnly = true)
     public byte[] generateActaNotasPdf(Integer subjectId) {
         // 1. Fase rápida transaccional: Extrae la data requerida y libera la DB de inmediato
         Subject subject = this.getSubjectForReport(subjectId);
@@ -101,8 +102,9 @@ public class ReportService {
 
     /**
      * Genera el reporte de Asistencias en Excel utilizando Apache POI.
-     * NO posee transacciones activas durante la manipulación de libros y hojas.
+     * Anotado con @Transactional(readOnly = true) para resolver la auto-invocación AOP.
      */
+    @Transactional(readOnly = true)
     public byte[] generateAsistenciaExcel(Integer subjectId) {
         // 1. Fase rápida transaccional: Consulta veloz de datos relacionales
         List<Enrollment> enrollments = this.getEnrollmentsWithSubjectValidation(subjectId);
@@ -149,21 +151,18 @@ public class ReportService {
     }
 
     // =========================================================================
-    // FASE DE ACCESO ÁGIL A LA DB (MÉTODOS PRIVADOS - @TRANSACTIONAL READ-ONLY)
+    // FASE DE ACCESO ÁGIL A LA DB (MÉTODOS PRIVADOS QUE HEREDAN TRANSACCIÓN)
     // =========================================================================
 
-    @Transactional(readOnly = true)
     protected Subject getSubjectForReport(Integer subjectId) {
         return subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
     }
 
-    @Transactional(readOnly = true)
     protected List<Enrollment> getEnrollmentsForReport(Integer subjectId) {
         return enrollmentRepository.findBySubjectId(subjectId);
     }
 
-    @Transactional(readOnly = true)
     protected List<Enrollment> getEnrollmentsWithSubjectValidation(Integer subjectId) {
         if (!subjectRepository.existsById(subjectId)) {
             throw new ResourceNotFoundException("Materia no encontrada.");
@@ -171,7 +170,6 @@ public class ReportService {
         return enrollmentRepository.findBySubjectId(subjectId);
     }
 
-    @Transactional(readOnly = true)
     protected Map<UUID, Long> getAbsencesContext(List<UUID> enrollmentIds) {
         if (enrollmentIds.isEmpty()) {
             return Map.of();
