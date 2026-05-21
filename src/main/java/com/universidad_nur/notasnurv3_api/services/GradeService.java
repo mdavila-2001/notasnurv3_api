@@ -15,11 +15,13 @@ import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+import com.universidad_nur.notasnurv3_api.services.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +33,7 @@ public class GradeService {
     private final EnrollmentRepository enrollmentRepository;
     private final ComponentRepository componentRepository;
     private final UserRepository userRepository;
+    private final SystemSettingService systemSettingService;
 
     @Transactional
     public GradeResponse saveGrade(GradeRequest request, String teacherEmail) {
@@ -78,6 +81,13 @@ public class GradeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada."));
 
         Subject subject = enrollment.getSubject();
+
+        // Validar límite temporal de registro/modificación de notas
+        int graceDays = systemSettingService.getIntValue("GRADING_GRACE_DAYS", 0);
+        LocalDate deadline = subject.getSemester().getEndDate().plusDays(graceDays);
+        if (LocalDate.now().isAfter(deadline)) {
+            throw new InvalidOperationException("Se ha superado la fecha límite establecida para la carga de notas.");
+        }
 
         if (subject.getRecordStatus() == RecordStatus.CLOSED) {
             throw new UnauthorizedAccessException("La materia se encuentra cerrada. No se pueden modificar calificaciones.");
