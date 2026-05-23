@@ -2,6 +2,7 @@ package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.ComponentRequest;
 import com.universidad_nur.notasnurv3_api.dto.ComponentResponse;
+import com.universidad_nur.notasnurv3_api.dto.ComponentUpdateRequest;
 import com.universidad_nur.notasnurv3_api.entities.Components;
 import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
 import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
@@ -34,6 +35,23 @@ public class ComponentService {
 
         Components saved = componentRepository.save(components);
         return new ComponentResponse(saved.getId(), saved.getName(), saved.getWeight(), saved.getDescription());
+    }
+
+    @Transactional
+    public ComponentResponse updateComponent(Integer componentId, ComponentUpdateRequest request) {
+        Components components = componentRepository.findById(componentId)
+                .orElseThrow(() -> new RuntimeException("Componente no encontrado."));
+
+        if (components.getPlan().getSubject().getRecordStatus() != com.universidad_nur.notasnurv3_api.entities.RecordStatus.DRAFT) {
+            throw new com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException("No se pueden editar componentes. El plan de evaluación ya está activo o bloqueado.");
+        }
+
+        components.setName(request.name());
+        components.setWeight(request.weight());
+        components.setDescription(request.description());
+
+        Components updated = componentRepository.save(components);
+        return new ComponentResponse(updated.getId(), updated.getName(), updated.getWeight(), updated.getDescription());
     }
 
     @Transactional

@@ -1,5 +1,13 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.universidad_nur.notasnurv3_api.dto.GradeRequest;
 import com.universidad_nur.notasnurv3_api.dto.GradeResponse;
 import com.universidad_nur.notasnurv3_api.entities.Components;
@@ -15,15 +23,8 @@ import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
-import com.universidad_nur.notasnurv3_api.services.SystemSettingService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,39 @@ public class GradeService {
     private final ComponentRepository componentRepository;
     private final UserRepository userRepository;
     private final SystemSettingService systemSettingService;
+
+    /**
+     * Obtiene todas las calificaciones de todos los estudiantes de una materia.
+     * Valida que el docente autenticado sea el titular de la materia.
+     * Reutiliza EnrollmentRepository.findBySubjectId que ya carga grades via JOIN FETCH.
+     */
+    @Transactional(readOnly = true)
+    public List<GradeResponse> getGradesBySubject(Integer subjectId, String teacherEmail) {
+        Users teacher = userRepository.findByEmail(teacherEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
+
+        List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
+
+        // Validar que el docente sea el titular de al menos una de las inscripciones
+        if (!enrollments.isEmpty()) {
+            Subject subject = enrollments.get(0).getSubject();
+            if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
+                throw new UnauthorizedAccessException("No tienes permisos para ver las notas de esta materia.");
+            }
+        }
+
+        return enrollments.stream()
+                .flatMap(enrollment -> enrollment.getGrades().stream()
+                        .map(grade -> new GradeResponse(
+                                grade.getId(),
+                                enrollment.getId(),
+                                grade.getComponent().getId(),
+                                grade.getTeacher() != null ? grade.getTeacher().getId() : null,
+                                grade.getScore()
+                        ))
+                )
+                .toList();
+    }
 
     @Transactional
     public GradeResponse saveGrade(GradeRequest request, String teacherEmail) {
@@ -115,7 +149,7 @@ public class GradeService {
             throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }
 
-        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponentId(request.enrollmentId(), request.componentId());
+        Optional<Grade> existingGradeOpt = gradeRepository.findByEnrollmentIdAndComponent_Id(request.enrollmentId(), request.componentId());
 
         if (existingGradeOpt.isPresent()) {
             Grade existingGrade = existingGradeOpt.get();
