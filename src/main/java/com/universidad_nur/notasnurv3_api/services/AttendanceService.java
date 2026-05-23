@@ -1,7 +1,10 @@
 package com.universidad_nur.notasnurv3_api.services;
 
 import com.universidad_nur.notasnurv3_api.dto.AttendanceBulkRequest;
+import com.universidad_nur.notasnurv3_api.dto.AttendanceAbsencesResponse;
+import com.universidad_nur.notasnurv3_api.dto.AttendanceRecordResponse;
 import com.universidad_nur.notasnurv3_api.dto.StudentAttendance;
+import com.universidad_nur.notasnurv3_api.dto.StudentAbsence;
 import com.universidad_nur.notasnurv3_api.entities.*;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
@@ -15,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -116,6 +121,61 @@ public class AttendanceService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public AttendanceAbsencesResponse getSubjectAbsences(Integer subjectId, String teacherEmail) {
+        Subject subject = getValidatedSubjectForTeacher(subjectId, teacherEmail);
+        List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subject.getId());
+        List<UUID> enrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
+        Map<UUID, Long> absencesCountMap = countAbsencesByEnrollmentIds(enrollmentIds);
+
+        List<StudentAbsence> students = enrollments.stream()
+                .map(enrollment -> {
+                    Users student = enrollment.getAcademicRecord().getUser();
+                    long absencesCount = absencesCountMap.getOrDefault(enrollment.getId(), 0L);
+                    return new StudentAbsence(
+                            enrollment.getId(),
+                            student.getId(),
+                            student.getFullName(),
+                            (int) absencesCount
+                    );
+                })
+                .toList();
+
+        int absenceLimit = systemSettingService.getAbsenceLimit(subject.getModality());
+        return new AttendanceAbsencesResponse(students, absenceLimit);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttendanceRecordResponse> getAttendanceBySubjectAndDate(Integer subjectId, LocalDate date, String teacherEmail) {
+        Subject subject = getValidatedSubjectForTeacher(subjectId, teacherEmail);
+        List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subject.getId());
+        List<UUID> enrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
+        Map<UUID, Attendance> attendanceByEnrollmentId = attendanceRepository.findByEnrollmentIdInAndDate(enrollmentIds, date).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        attendance -> attendance.getEnrollment().getId(),
+                        attendance -> attendance
+                ));
+
+        return enrollments.stream()
+                .map(enrollment -> {
+                    Attendance attendance = attendanceByEnrollmentId.get(enrollment.getId());
+                    if (attendance == null) {
+                        return null;
+                    }
+
+                    Users student = enrollment.getAcademicRecord().getUser();
+                    return new AttendanceRecordResponse(
+                            enrollment.getId(),
+                            student.getId(),
+                            student.getFullName(),
+                            attendance.getStatus().name(),
+                            attendance.getDate()
+                    );
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
     private java.util.Map<java.util.UUID, Long> countAbsencesByEnrollmentIds(java.util.List<java.util.UUID> enrollmentIds) {
         if (enrollmentIds.isEmpty()) {
             return java.util.Map.of();
@@ -126,6 +186,20 @@ public class AttendanceService {
                         row -> (java.util.UUID) row[0],
                         row -> ((Number) row[1]).longValue()
                 ));
+    }
+
+    private Subject getValidatedSubjectForTeacher(Integer subjectId, String teacherEmail) {
+        Subject subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
+
+        Users teacher = userRepository.findByEmail(teacherEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
+
+        if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
+            throw new UnauthorizedAccessException("No tienes permisos para acceder a esta materia.");
+        }
+
+        return subject;
     }
 }
 
