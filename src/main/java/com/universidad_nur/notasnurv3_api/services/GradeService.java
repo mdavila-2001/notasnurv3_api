@@ -19,6 +19,8 @@ import com.universidad_nur.notasnurv3_api.entities.Users;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.entities.AuditLog;
+import com.universidad_nur.notasnurv3_api.repositories.AuditLogRepository;
 import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
@@ -35,6 +37,7 @@ public class GradeService {
     private final ComponentRepository componentRepository;
     private final UserRepository userRepository;
     private final SystemSettingService systemSettingService;
+    private final AuditLogRepository auditLogRepository;
 
     /**
      * Obtiene todas las calificaciones de todos los estudiantes de una materia.
@@ -74,8 +77,21 @@ public class GradeService {
         Users teacher = userRepository.findByEmail(teacherEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
 
+        boolean isNew = gradeRepository.findByEnrollmentIdAndComponent_Id(request.enrollmentId(), request.componentId()).isEmpty();
+
         Grade grade = validateAndPrepareGrade(request, teacher);
         Grade saved = gradeRepository.save(grade);
+
+        if (isNew) {
+            auditLogRepository.save(AuditLog.builder()
+                    .entityName("GRADE")
+                    .entityRefId(saved.getId().toString())
+                    .actionType("CREATE")
+                    .oldValue("N/A")
+                    .newValue(saved.getScore().toString())
+                    .changedBy(teacher.getEmail())
+                    .build());
+        }
 
         return new GradeResponse(
                 saved.getId(),
@@ -91,13 +107,35 @@ public class GradeService {
         Users teacher = userRepository.findByEmail(teacherEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
 
-        // Validar todas las solicitudes antes de guardar
-        List<Grade> gradesToSave = gradeRequests.stream()
-                .map(request -> validateAndPrepareGrade(request, teacher))
-                .toList();
+        List<Grade> gradesToSave = new java.util.ArrayList<>();
+        List<Grade> newGradesAfterSave = new java.util.ArrayList<>();
 
-        // Guardar todas las notas en una sola transacción
+        for (GradeRequest request : gradeRequests) {
+            boolean isNew = gradeRepository.findByEnrollmentIdAndComponent_Id(request.enrollmentId(), request.componentId()).isEmpty();
+            Grade grade = validateAndPrepareGrade(request, teacher);
+            gradesToSave.add(grade);
+            if (isNew) {
+                newGradesAfterSave.add(grade);
+            }
+        }
+
         List<Grade> savedGrades = gradeRepository.bulkSave(gradesToSave);
+
+        for (Grade saved : savedGrades) {
+            boolean wasNew = newGradesAfterSave.stream()
+                    .anyMatch(g -> g.getEnrollment().getId().equals(saved.getEnrollment().getId()) 
+                            && g.getComponent().getId().equals(saved.getComponent().getId()));
+            if (wasNew) {
+                auditLogRepository.save(AuditLog.builder()
+                        .entityName("GRADE")
+                        .entityRefId(saved.getId().toString())
+                        .actionType("CREATE")
+                        .oldValue("N/A")
+                        .newValue(saved.getScore().toString())
+                        .changedBy(teacher.getEmail())
+                        .build());
+            }
+        }
 
         return savedGrades.stream()
                 .map(grade -> new GradeResponse(
@@ -153,6 +191,17 @@ public class GradeService {
 
         if (existingGradeOpt.isPresent()) {
             Grade existingGrade = existingGradeOpt.get();
+            BigDecimal oldScore = existingGrade.getScore();
+            if (oldScore.compareTo(request.score()) != 0) {
+                auditLogRepository.save(AuditLog.builder()
+                        .entityName("GRADE")
+                        .entityRefId(existingGrade.getId().toString())
+                        .actionType("UPDATE")
+                        .oldValue(oldScore.toString())
+                        .newValue(request.score().toString())
+                        .changedBy(teacher.getEmail())
+                        .build());
+            }
             existingGrade.setScore(request.score());
             existingGrade.setTeacher(teacher);
             return existingGrade;

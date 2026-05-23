@@ -38,20 +38,21 @@ public class GradingService {
             throw new InvalidOperationException("La materia no tiene un plan de evaluación asignado o componentes.");
         }
 
-        int requiredGradesCount = plan.getComponents().size();
-
         List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
 
         for (Enrollment enrollment : enrollments) {
-            List<Grade> grades = gradeRepository.findByEnrollmentId(enrollment.getId());
-
-            if (grades.size() < requiredGradesCount) {
-                throw new InvalidOperationException("Faltan notas para el alumno con inscripción ID: " + enrollment.getId() + ". No se puede procesar la nota final.");
-            }
+            // Reutilizar la colección grades ya precargada en memoria vía JOIN FETCH
+            List<Grade> grades = enrollment.getGrades();
 
             BigDecimal sum = BigDecimal.ZERO;
-            for (Grade grade : grades) {
-                sum = sum.add(grade.getScore());
+            for (Components component : plan.getComponents()) {
+                // Si el alumno tiene nota para este componente, se suma; de lo contrario, se asume 0
+                BigDecimal score = grades.stream()
+                        .filter(g -> g.getComponent().getId().equals(component.getId()))
+                        .map(Grade::getScore)
+                        .findFirst()
+                        .orElse(BigDecimal.ZERO);
+                sum = sum.add(score);
             }
 
             // Aplicar redondeo NUR configurable
@@ -69,9 +70,10 @@ public class GradingService {
                     enrollment.setStatus(EnrollmentStatus.FAILED);
                 }
             }
-
-            enrollmentRepository.save(enrollment);
         }
+
+        // Guardar todos en masa fuera del bucle para evitar sobrecarga en la DB
+        enrollmentRepository.saveAll(enrollments);
 
         log.info("Cálculo de notas finales completado para la materia ID: {}", subjectId);
     }
