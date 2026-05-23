@@ -1,0 +1,135 @@
+CONFIRMACION OFICIAL - API DE HITOS/COMPONENTES
+
+Sí existe API para crear hitos reales en el backend.
+
+Importante:
+El backend maneja esto en 2 pasos separados:
+
+1) Crear el plan base de evaluación
+   Endpoint:
+   POST /api/evaluation-plans/subject/{subjectId}
+
+   Qué hace:
+   - Crea (o devuelve) el plan de evaluación de una materia.
+   - No recibe body JSON.
+
+   Seguridad:
+   - Requiere token JWT en header Authorization: Bearer <token>
+   - Requiere rol de docente (TEACHER)
+
+   Respuesta esperada:
+   - 201 Created
+
+2) Crear hitos/componentes reales dentro del plan
+   Endpoint:
+   POST /api/components
+
+   Qué hace:
+   - Crea un componente/hito dentro de un plan existente.
+
+   Estructura del body (JSON):
+   {
+     "name": "Parcial 1",
+     "weight": 30,
+     "description": "Evaluacion parcial",
+     "planId": 13
+   }
+
+   Campos:
+   - name: obligatorio (texto)
+   - weight: obligatorio (numero, entre 1 y 100)
+   - description: opcional (texto)
+   - planId: obligatorio (id del plan)
+
+   Seguridad:
+   - Requiere token JWT en header Authorization: Bearer <token>
+   - Requiere rol de docente (TEACHER)
+
+   Respuesta esperada:
+   - 200 OK (componente creado)
+
+Endpoint adicional relacionado:
+- DELETE /api/components/{id}
+  Elimina un componente/hito por id (tambien requiere TEACHER).
+
+Flujo correcto para frontend:
+1. POST /api/evaluation-plans/subject/{subjectId}  -> obtener planId
+2. POST /api/components                            -> crear cada hito con ese planId
+3. (Opcional) POST /api/evaluation-plans/subject/{subjectId}/activate cuando la suma de ponderaciones sea 100
+
+Conclusión:
+El problema no es que falte API para hitos. La API sí existe. Lo necesario es que el frontend, además de crear el plan base, consuma también POST /api/components para guardar los hitos reales.
+
+COMO GUARDAR LOS HITOS (PASO A PASO)
+
+Paso 1: Crear/obtener plan base
+Request:
+POST /api/evaluation-plans/subject/{subjectId}
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+Body:
+- vacio
+
+Respuesta esperada:
+- 201 Created
+- data.id = planId que se usara para crear hitos
+
+Paso 2: Crear un hito (repetir por cada componente)
+Request:
+POST /api/components
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+Body ejemplo:
+{
+  "name": "Parcial 1",
+  "weight": 30,
+  "description": "Evaluacion parcial",
+  "planId": 13
+}
+
+Respuesta esperada:
+- 200 OK
+- data.id = id del componente creado
+
+Paso 3: Validar suma de ponderaciones
+- Sumar todos los weight de los hitos del plan.
+- Debe dar exactamente 100 para activar el plan.
+
+Paso 4 (opcional): Activar plan
+Request:
+POST /api/evaluation-plans/subject/{subjectId}/activate
+Headers:
+- Authorization: Bearer <token>
+- Content-Type: application/json
+Body:
+- vacio
+
+Resultado esperado:
+- 200 OK si hay componentes y suman 100
+- 400 Bad Request si no hay componentes o la suma no es 100
+
+EJEMPLO CURL MINIMO FUNCIONAL
+
+1) Crear plan base:
+curl -X POST http://localhost:8080/api/evaluation-plans/subject/5 \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Content-Type: application/json"
+
+2) Crear hito:
+curl -X POST http://localhost:8080/api/components \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Parcial 1",
+    "weight": 30,
+    "description": "Evaluacion parcial",
+    "planId": 13
+  }'
+
+ERRORES COMUNES AL GUARDAR HITOS
+- 401: token ausente, invalido o expirado.
+- 403: usuario sin rol TEACHER.
+- 400: body invalido (name vacio, weight fuera de 1..100, planId faltante).
+- 400: intento de modificar componentes cuando el plan/materia ya no esta en estado DRAFT.

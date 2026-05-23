@@ -1,28 +1,39 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import com.universidad_nur.notasnurv3_api.dto.GradeRequest;
-import com.universidad_nur.notasnurv3_api.dto.GradeResponse;
-import com.universidad_nur.notasnurv3_api.entities.*;
-import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
-import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
-import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
-import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
-import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.universidad_nur.notasnurv3_api.dto.GradeRequest;
+import com.universidad_nur.notasnurv3_api.dto.GradeResponse;
+import com.universidad_nur.notasnurv3_api.entities.Components;
+import com.universidad_nur.notasnurv3_api.entities.Enrollment;
+import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
+import com.universidad_nur.notasnurv3_api.entities.Grade;
+import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
+import com.universidad_nur.notasnurv3_api.entities.Semester;
+import com.universidad_nur.notasnurv3_api.entities.Subject;
+import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
+import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
+import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
+import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class GradeServiceTest {
@@ -89,7 +100,7 @@ class GradeServiceTest {
         when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.of(enrollment));
         when(systemSettingService.getIntValue("GRADING_GRACE_DAYS", 0)).thenReturn(0);
         when(componentRepository.findById(1)).thenReturn(Optional.of(component));
-        when(gradeRepository.findByEnrollmentIdAndComponentId(enrollmentId, 1)).thenReturn(Optional.empty());
+        when(gradeRepository.findByEnrollmentIdAndComponent_Id(enrollmentId, 1)).thenReturn(Optional.empty());
         
         Grade savedGrade = Grade.builder()
                 .id(UUID.randomUUID())
@@ -134,7 +145,7 @@ class GradeServiceTest {
         when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.of(enrollment));
         when(systemSettingService.getIntValue("GRADING_GRACE_DAYS", 0)).thenReturn(5);
         when(componentRepository.findById(1)).thenReturn(Optional.of(component));
-        when(gradeRepository.findByEnrollmentIdAndComponentId(enrollmentId, 1)).thenReturn(Optional.empty());
+        when(gradeRepository.findByEnrollmentIdAndComponent_Id(enrollmentId, 1)).thenReturn(Optional.empty());
 
         Grade savedGrade = Grade.builder()
                 .id(UUID.randomUUID())
