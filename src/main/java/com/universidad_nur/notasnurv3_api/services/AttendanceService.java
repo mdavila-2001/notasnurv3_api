@@ -13,6 +13,7 @@ import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+import com.universidad_nur.notasnurv3_api.repositories.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class AttendanceService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final SystemSettingService systemSettingService;
+    private final AuditLogRepository auditLogRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public void saveBulkAttendance(AttendanceBulkRequest request, String teacherEmail) {
@@ -75,11 +77,18 @@ public class AttendanceService {
 
         // 3. Procesar y preparar entidades de asistencia para guardar en masa
         java.util.List<Attendance> attendancesToSave = new java.util.ArrayList<>();
+        java.util.List<Attendance> newAttendances = new java.util.ArrayList<>();
+        java.util.Map<java.util.UUID, String> oldStatusMap = new java.util.HashMap<>();
+
         for (StudentAttendance item : request.records()) {
             Enrollment enrollment = enrollmentMap.get(item.enrollmentId());
             Attendance attendance = existingAttendanceMap.get(item.enrollmentId());
 
             if (attendance != null) {
+                String oldStatus = attendance.getStatus().name();
+                if (!oldStatus.equals(item.status().name())) {
+                    oldStatusMap.put(item.enrollmentId(), oldStatus);
+                }
                 attendance.setStatus(item.status());
             } else {
                 attendance = Attendance.builder()
@@ -87,10 +96,41 @@ public class AttendanceService {
                         .date(request.date())
                         .status(item.status())
                         .build();
+                newAttendances.add(attendance);
             }
             attendancesToSave.add(attendance);
         }
-        attendanceRepository.saveAll(attendancesToSave);
+
+        // Guardar todas las asistencias en masa
+        java.util.List<Attendance> savedAttendances = attendanceRepository.saveAll(attendancesToSave);
+
+        // Escribir los registros de auditoría
+        for (Attendance saved : savedAttendances) {
+            java.util.UUID eId = saved.getEnrollment().getId();
+            
+            // Caso 1: Asistencia nueva (CREATE)
+            if (newAttendances.stream().anyMatch(a -> a.getEnrollment().getId().equals(eId))) {
+                auditLogRepository.save(AuditLog.builder()
+                        .entityName("ATTENDANCE")
+                        .entityRefId(saved.getId().toString())
+                        .actionType("CREATE")
+                        .oldValue("N/A")
+                        .newValue(saved.getStatus().name())
+                        .changedBy(teacherEmail)
+                        .build());
+            } 
+            // Caso 2: Asistencia modificada (UPDATE)
+            else if (oldStatusMap.containsKey(eId)) {
+                auditLogRepository.save(AuditLog.builder()
+                        .entityName("ATTENDANCE")
+                        .entityRefId(saved.getId().toString())
+                        .actionType("UPDATE")
+                        .oldValue(oldStatusMap.get(eId))
+                        .newValue(saved.getStatus().name())
+                        .changedBy(teacherEmail)
+                        .build());
+            }
+        }
 
         // 4. Pre-cargar el conteo total acumulado de inasistencias en una única consulta agregada
         java.util.List<java.util.UUID> allEnrollmentIds = enrollments.stream().map(Enrollment::getId).toList();

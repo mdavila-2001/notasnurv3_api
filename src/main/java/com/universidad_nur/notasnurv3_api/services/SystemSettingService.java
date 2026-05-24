@@ -106,7 +106,7 @@ public class SystemSettingService {
         return GlobalSettingsResponse.builder()
                 .academic(GlobalSettingsResponse.AcademicSettingsDto.builder()
                         .minPassingGrade(getIntValue("MIN_PASSING_GRADE", 51))
-                        .roundingType(getSettingValue("ROUNDING_TYPE", "CLASSIC_UP"))
+                        .roundingType(getSettingValue("NUR_ROUNDING_MODE", "HALF_UP"))
                         .globalGradesDeadline(getSettingValue("GLOBAL_GRADES_DEADLINE", ""))
                         .build())
                 .attendance(GlobalSettingsResponse.AttendanceSettingsDto.builder()
@@ -120,7 +120,7 @@ public class SystemSettingService {
     public GlobalSettingsResponse saveGlobalSettings(GlobalSettingsResponse request) {
         if (request.getAcademic() != null) {
             updateSetting("MIN_PASSING_GRADE", String.valueOf(request.getAcademic().getMinPassingGrade()), "Nota mínima para aprobar materias");
-            updateSetting("ROUNDING_TYPE", request.getAcademic().getRoundingType(), "Estrategia de redondeo de notas");
+            updateSetting("NUR_ROUNDING_MODE", request.getAcademic().getRoundingType(), "Modo de redondeo de notas");
             updateSetting("GLOBAL_GRADES_DEADLINE", request.getAcademic().getGlobalGradesDeadline(), "Fecha máxima para registro de notas en actas");
         }
         

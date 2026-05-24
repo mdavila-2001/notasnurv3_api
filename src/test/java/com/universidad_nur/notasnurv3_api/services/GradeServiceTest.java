@@ -34,6 +34,7 @@ import com.universidad_nur.notasnurv3_api.repositories.ComponentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
 import com.universidad_nur.notasnurv3_api.repositories.GradeRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+import com.universidad_nur.notasnurv3_api.repositories.AuditLogRepository;
 
 @ExtendWith(MockitoExtension.class)
 class GradeServiceTest {
@@ -48,6 +49,8 @@ class GradeServiceTest {
     private UserRepository userRepository;
     @Mock
     private SystemSettingService systemSettingService;
+    @Mock
+    private AuditLogRepository auditLogRepository;
 
     @InjectMocks
     private GradeService gradeService;

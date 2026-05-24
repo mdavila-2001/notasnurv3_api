@@ -141,7 +141,7 @@ public class SubjectService {
         return mapToResponseDTO(activatedSubject);
     }
 
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public SubjectResponse closeSubject(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
@@ -159,12 +159,16 @@ public class SubjectService {
 
     @Transactional
     public void closeSubjectsBySemester(Integer semesterId) {
-        List<Subject> subjects = subjectRepository.findAll().stream()
-                .filter(s -> s.getSemester().getId().equals(semesterId) && s.getRecordStatus() != RecordStatus.CLOSED)
-                .toList();
+        // Filtrar a nivel de DB directamente en lugar de traer todo a memoria
+        List<Subject> subjects = subjectRepository.findBySemesterIdAndRecordStatusNot(semesterId, RecordStatus.CLOSED);
 
         for (Subject subject : subjects) {
-            self.closeSubject(subject.getId());
+            try {
+                self.closeSubject(subject.getId());
+            } catch (Exception e) {
+                log.error("Fallo al cerrar materia ID {}: {}. Continuando con las siguientes materias del semestre.", 
+                        subject.getId(), e.getMessage());
+            }
         }
     }
 

@@ -48,4 +48,14 @@ public class GradeController {
         GradeResponse response = gradeService.saveGrade(request, authentication.getName());
         return ResponseEntity.ok(new ApiResponse<>(true, "Calificación registrada correctamente", response));
     }
+
+    @PostMapping("/bulk")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
+    public ResponseEntity<ApiResponse<List<GradeResponse>>> bulkSaveGrades(
+            @Valid @RequestBody List<GradeRequest> request,
+            Authentication authentication
+    ) {
+        List<GradeResponse> response = gradeService.bulkSaveGrades(request, authentication.getName());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Calificaciones masivas registradas correctamente", response));
+    }
 }
