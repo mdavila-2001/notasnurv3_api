@@ -123,4 +123,81 @@ class EvaluationPlanServiceTest {
 
         verify(evaluationPlanRepository, times(1)).save(any(EvaluationPlan.class));
     }
+
+    @Test
+    void activatePlan_ShouldThrowException_WhenPlanIsEmpty() {
+        EvaluationPlan mockPlan = new EvaluationPlan();
+        mockPlan.setId(100);
+        mockPlan.setSubject(mockSubject);
+        mockPlan.setComponents(java.util.Collections.emptyList());
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.of(mockPlan));
+
+        com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException exception = assertThrows(
+                com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException.class,
+                () -> evaluationPlanService.activatePlan(1, "profesor@nur.edu.bo")
+        );
+
+        assertEquals("No se puede activar un plan de evaluación sin componentes.", exception.getMessage());
+    }
+
+    @Test
+    void activatePlan_ShouldThrowException_WhenPlanHasNullComponents() {
+        EvaluationPlan mockPlan = new EvaluationPlan();
+        mockPlan.setId(100);
+        mockPlan.setSubject(mockSubject);
+        mockPlan.setComponents(null);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.of(mockPlan));
+
+        com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException exception = assertThrows(
+                com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException.class,
+                () -> evaluationPlanService.activatePlan(1, "profesor@nur.edu.bo")
+        );
+
+        assertEquals("No se puede activar un plan de evaluación sin componentes.", exception.getMessage());
+    }
+
+    @Test
+    void activatePlan_ShouldThrowException_WhenTotalWeightIsNot100() {
+        EvaluationPlan mockPlan = new EvaluationPlan();
+        mockPlan.setId(100);
+        mockPlan.setSubject(mockSubject);
+        
+        com.universidad_nur.notasnurv3_api.entities.Components component = com.universidad_nur.notasnurv3_api.entities.Components.builder()
+                .weight(new java.math.BigDecimal("90"))
+                .build();
+        mockPlan.setComponents(java.util.Arrays.asList(component));
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.of(mockPlan));
+
+        com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException exception = assertThrows(
+                com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException.class,
+                () -> evaluationPlanService.activatePlan(1, "profesor@nur.edu.bo")
+        );
+
+        assertEquals("La suma de las ponderaciones debe ser exactamente 100.", exception.getMessage());
+    }
+
+    @Test
+    void activatePlan_ShouldActivatePlan_WhenPlanIsValid() {
+        EvaluationPlan mockPlan = new EvaluationPlan();
+        mockPlan.setId(100);
+        mockPlan.setSubject(mockSubject);
+
+        com.universidad_nur.notasnurv3_api.entities.Components c1 = com.universidad_nur.notasnurv3_api.entities.Components.builder().weight(new java.math.BigDecimal("50")).build();
+        com.universidad_nur.notasnurv3_api.entities.Components c2 = com.universidad_nur.notasnurv3_api.entities.Components.builder().weight(new java.math.BigDecimal("50")).build();
+        mockPlan.setComponents(java.util.Arrays.asList(c1, c2));
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(mockSubject));
+        when(evaluationPlanRepository.findBySubjectId(1)).thenReturn(Optional.of(mockPlan));
+
+        evaluationPlanService.activatePlan(1, "profesor@nur.edu.bo");
+
+        assertEquals(com.universidad_nur.notasnurv3_api.entities.RecordStatus.ACTIVE, mockSubject.getRecordStatus());
+        verify(subjectRepository, times(1)).save(mockSubject);
+    }
 }
