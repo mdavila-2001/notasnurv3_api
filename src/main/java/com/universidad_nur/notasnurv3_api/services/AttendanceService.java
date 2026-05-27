@@ -1,27 +1,36 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import com.universidad_nur.notasnurv3_api.dto.AttendanceBulkRequest;
-import com.universidad_nur.notasnurv3_api.dto.AttendanceAbsencesResponse;
-import com.universidad_nur.notasnurv3_api.dto.AttendanceRecordResponse;
-import com.universidad_nur.notasnurv3_api.dto.StudentAttendance;
-import com.universidad_nur.notasnurv3_api.dto.StudentAbsence;
-import com.universidad_nur.notasnurv3_api.entities.*;
-import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
-import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
-import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
-import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
-import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
-import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
-import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
-import com.universidad_nur.notasnurv3_api.repositories.AuditLogRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.universidad_nur.notasnurv3_api.dto.AttendanceAbsencesResponse;
+import com.universidad_nur.notasnurv3_api.dto.AttendanceBulkRequest;
+import com.universidad_nur.notasnurv3_api.dto.AttendanceRecordResponse;
+import com.universidad_nur.notasnurv3_api.dto.StudentAbsence;
+import com.universidad_nur.notasnurv3_api.dto.StudentAttendance;
+import com.universidad_nur.notasnurv3_api.entities.Attendance;
+import com.universidad_nur.notasnurv3_api.entities.AttendanceStatus;
+import com.universidad_nur.notasnurv3_api.entities.AuditLog;
+import com.universidad_nur.notasnurv3_api.entities.Enrollment;
+import com.universidad_nur.notasnurv3_api.entities.EnrollmentStatus;
+import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
+import com.universidad_nur.notasnurv3_api.entities.Subject;
+import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
+import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
+import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
+import com.universidad_nur.notasnurv3_api.repositories.AuditLogRepository;
+import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
+import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -105,33 +114,48 @@ public class AttendanceService {
         java.util.List<Attendance> savedAttendances = attendanceRepository.saveAll(attendancesToSave);
 
         // Escribir los registros de auditoría
+       // Escribir los registros de auditoría adaptados al esquema real de Neon
+       // Escribir los registros de auditoría (Mandando lo viejo y lo nuevo)
         for (Attendance saved : savedAttendances) {
             java.util.UUID eId = saved.getEnrollment().getId();
-            
+            String jsonNewValue = "{\"status\": \"" + saved.getStatus().name() + "\"}";
+
             // Caso 1: Asistencia nueva (CREATE)
             if (newAttendances.stream().anyMatch(a -> a.getEnrollment().getId().equals(eId))) {
                 auditLogRepository.save(AuditLog.builder()
+                        // Campos Nuevos
+                        .affectedTable("attendance")
+                        .recordId(saved.getId())
+                        .oldValue(null)
+                        .newValue(jsonNewValue)
+                        .action("CREATE")
+                        .ipAddress("127.0.0.1")
+                        // Campos Viejos
                         .entityName("ATTENDANCE")
                         .entityRefId(saved.getId().toString())
                         .actionType("CREATE")
-                        .oldValue("N/A")
-                        .newValue(saved.getStatus().name())
                         .changedBy(teacherEmail)
                         .build());
             } 
             // Caso 2: Asistencia modificada (UPDATE)
             else if (oldStatusMap.containsKey(eId)) {
+                String jsonOldValue = "{\"status\": \"" + oldStatusMap.get(eId) + "\"}";
                 auditLogRepository.save(AuditLog.builder()
+                        // Campos Nuevos
+                        .affectedTable("attendance")
+                        .recordId(saved.getId())
+                        .oldValue(jsonOldValue)
+                        .newValue(jsonNewValue)
+                        .action("UPDATE")
+                        .ipAddress("127.0.0.1")
+                        // Campos Viejos
                         .entityName("ATTENDANCE")
                         .entityRefId(saved.getId().toString())
                         .actionType("UPDATE")
-                        .oldValue(oldStatusMap.get(eId))
-                        .newValue(saved.getStatus().name())
                         .changedBy(teacherEmail)
                         .build());
             }
         }
-
         // 4. Pre-cargar el conteo total acumulado de inasistencias en una única consulta agregada
         java.util.List<java.util.UUID> allEnrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
         java.util.Map<java.util.UUID, Long> absencesCountMap = countAbsencesByEnrollmentIds(allEnrollmentIds);
@@ -242,4 +266,3 @@ public class AttendanceService {
         return subject;
     }
 }
-
