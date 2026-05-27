@@ -115,6 +115,9 @@ public class SubjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado."));
             subject.setSemester(semester);
         }
+        if (request.getRecordStatus() != null) {
+    subject.setRecordStatus(request.getRecordStatus());
+}
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
