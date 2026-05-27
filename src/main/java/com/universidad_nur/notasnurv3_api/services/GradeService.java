@@ -83,12 +83,20 @@ public class GradeService {
         Grade saved = gradeRepository.save(grade);
 
         if (isNew) {
+            String jsonNewValue = "{\"score\": " + saved.getScore() + "}";
             auditLogRepository.save(AuditLog.builder()
+                    // Campos Nuevos
+                    .affectedTable("grade")
+                    .recordId(saved.getId())
+                    .userId(teacher.getId())
+                    .action("CREATE")
+                    .oldValue(null)
+                    .newValue(jsonNewValue)
+                    .ipAddress("127.0.0.1")
+                    // Campos Viejos (Obligatorios por la BD)
                     .entityName("GRADE")
                     .entityRefId(saved.getId().toString())
                     .actionType("CREATE")
-                    .oldValue("N/A")
-                    .newValue(saved.getScore().toString())
                     .changedBy(teacher.getEmail())
                     .build());
         }
@@ -126,12 +134,20 @@ public class GradeService {
                     .anyMatch(g -> g.getEnrollment().getId().equals(saved.getEnrollment().getId()) 
                             && g.getComponent().getId().equals(saved.getComponent().getId()));
             if (wasNew) {
+                String jsonNewValue = "{\"score\": " + saved.getScore() + "}";
                 auditLogRepository.save(AuditLog.builder()
+                        // Campos Nuevos
+                        .affectedTable("grade")
+                        .recordId(saved.getId())
+                        .userId(teacher.getId())
+                        .action("CREATE")
+                        .oldValue(null)
+                        .newValue(jsonNewValue)
+                        .ipAddress("127.0.0.1")
+                        // Campos Viejos (Obligatorios por la BD)
                         .entityName("GRADE")
                         .entityRefId(saved.getId().toString())
                         .actionType("CREATE")
-                        .oldValue("N/A")
-                        .newValue(saved.getScore().toString())
                         .changedBy(teacher.getEmail())
                         .build());
             }
@@ -193,12 +209,22 @@ public class GradeService {
             Grade existingGrade = existingGradeOpt.get();
             BigDecimal oldScore = existingGrade.getScore();
             if (oldScore.compareTo(request.score()) != 0) {
+                String jsonOldValue = "{\"score\": " + oldScore + "}";
+                String jsonNewValue = "{\"score\": " + request.score() + "}";
+                
                 auditLogRepository.save(AuditLog.builder()
+                        // Campos Nuevos
+                        .affectedTable("grade")
+                        .recordId(existingGrade.getId())
+                        .userId(teacher.getId())
+                        .action("UPDATE")
+                        .oldValue(jsonOldValue)
+                        .newValue(jsonNewValue)
+                        .ipAddress("127.0.0.1")
+                        // Campos Viejos (Obligatorios por la BD)
                         .entityName("GRADE")
                         .entityRefId(existingGrade.getId().toString())
                         .actionType("UPDATE")
-                        .oldValue(oldScore.toString())
-                        .newValue(request.score().toString())
                         .changedBy(teacher.getEmail())
                         .build());
             }
@@ -215,4 +241,3 @@ public class GradeService {
         }
     }
 }
-
