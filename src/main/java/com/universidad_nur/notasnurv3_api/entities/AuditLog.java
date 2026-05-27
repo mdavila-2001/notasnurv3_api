@@ -33,9 +33,13 @@ public class AuditLog {
     @Column(name = "record_id", nullable = false)
     private UUID recordId; 
 
+    // 👇 AQUÍ ESTÁ LA SOLUCIÓN
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "old_value", columnDefinition = "jsonb")
     private String oldValue; 
 
+    // 👇 AQUÍ TAMBIÉN
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "new_value", columnDefinition = "jsonb")
     private String newValue; 
 
