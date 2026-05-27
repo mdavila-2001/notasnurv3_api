@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +27,7 @@ import com.universidad_nur.notasnurv3_api.entities.Components;
 import com.universidad_nur.notasnurv3_api.entities.Enrollment;
 import com.universidad_nur.notasnurv3_api.entities.EvaluationPlan;
 import com.universidad_nur.notasnurv3_api.entities.Grade;
+import com.universidad_nur.notasnurv3_api.entities.AuditLog;
 import com.universidad_nur.notasnurv3_api.entities.RecordStatus;
 import com.universidad_nur.notasnurv3_api.entities.Semester;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
@@ -119,6 +122,20 @@ class GradeServiceTest {
         assertNotNull(response);
         assertEquals(BigDecimal.valueOf(25), response.score());
         verify(gradeRepository).save(any(Grade.class));
+        ArgumentCaptor<AuditLog> auditCaptor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogRepository).save(auditCaptor.capture());
+        AuditLog auditLog = auditCaptor.getValue();
+        assertEquals("grade", auditLog.getAffectedTable());
+        assertEquals(savedGrade.getId(), auditLog.getRecordId());
+        assertEquals(teacher.getId(), auditLog.getUserId());
+        assertEquals("CREATE", auditLog.getAction());
+        assertEquals("{\"score\": 25}", auditLog.getNewValue());
+        assertNull(auditLog.getOldValue());
+        assertEquals("127.0.0.1", auditLog.getIpAddress());
+        assertEquals("GRADE", auditLog.getEntityName());
+        assertEquals(savedGrade.getId().toString(), auditLog.getEntityRefId());
+        assertEquals("CREATE", auditLog.getActionType());
+        assertEquals(teacher.getEmail(), auditLog.getChangedBy());
     }
 
     @Test
