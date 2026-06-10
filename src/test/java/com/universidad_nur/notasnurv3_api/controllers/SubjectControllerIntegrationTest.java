@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,5 +60,24 @@ class SubjectControllerIntegrationTest {
             .andExpect(jsonPath("$[0].id").value(10))
             .andExpect(jsonPath("$[0].name").value("Matemática I"))
             .andExpect(jsonPath("$[0].teacherName").value("Docente Prueba"));
+    }
+
+    @Test
+    void closeSubject_debeInvocarServiceYRetornarSuccess() throws Exception {
+        SubjectResponse closedSubject = SubjectResponse.builder()
+                .id(10)
+                .code("MAT-101")
+                .name("Matemática I")
+                .recordStatus(RecordStatus.CLOSED)
+                .build();
+
+        when(subjectService.closeSubjectByUser(any(), any(), any())).thenReturn(closedSubject);
+
+        mockMvc.perform(put("/api/subjects/10/close"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Materia cerrada exitosamente y notas calculadas."))
+                .andExpect(jsonPath("$.data.id").value(10))
+                .andExpect(jsonPath("$.data.recordStatus").value("CLOSED"));
     }
 }
