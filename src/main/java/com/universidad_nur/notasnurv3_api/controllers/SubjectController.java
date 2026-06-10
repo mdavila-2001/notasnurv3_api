@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -84,7 +85,13 @@ public class SubjectController {
             @PathVariable Integer id,
             Authentication authentication
     ) {
-        SubjectResponse response = subjectService.closeSubjectByUser(id, authentication.getName(), authentication.getAuthorities());
+        Authentication auth = authentication != null ? authentication :
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+
+        String name = auth != null ? auth.getName() : "anonymous";
+        Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = auth != null ? auth.getAuthorities() : List.of();
+
+        SubjectResponse response = subjectService.closeSubjectByUser(id, name, authorities);
         return ResponseEntity.ok(new ApiResponse<>(true, "Materia cerrada exitosamente y notas calculadas.", response));
     }
 }
