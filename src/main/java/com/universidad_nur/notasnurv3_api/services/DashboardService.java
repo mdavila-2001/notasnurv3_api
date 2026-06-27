@@ -14,6 +14,7 @@ import com.universidad_nur.notasnurv3_api.entities.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.universidad_nur.notasnurv3_api.dto.dashboard.CriticalSubjectDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardAdminDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardStudentDTO;
 import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardTeacherDTO;
@@ -84,6 +85,36 @@ public class DashboardService {
         long totalPassedCount = enrollmentRepository.countByStatus(EnrollmentStatus.PASSED);
         double globalPassRate = totalEnrollmentsCount == 0 ? 0.0 : ((double) totalPassedCount / totalEnrollmentsCount) * 100;
 
+        // Calcular materias críticas
+        List<Enrollment> allEnrollments = enrollmentRepository.findAll();
+        Map<Subject, List<Enrollment>> enrollmentsBySubject = allEnrollments.stream()
+                .filter(e -> e.getSubject() != null)
+                .collect(Collectors.groupingBy(Enrollment::getSubject));
+
+        List<CriticalSubjectDTO> criticalSubjects = enrollmentsBySubject.entrySet().stream()
+                .map(entry -> {
+                    Subject subject = entry.getKey();
+                    List<Enrollment> subjectEnrollments = entry.getValue();
+                    long total = subjectEnrollments.size();
+                    long failed = subjectEnrollments.stream()
+                            .filter(e -> e.getStatus() == EnrollmentStatus.FAILED || e.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE)
+                            .count();
+                    double failureRate = total == 0 ? 0.0 : ((double) failed / total) * 100.0;
+                    String teacherName = subject.getTeacher() != null ? subject.getTeacher().getFullName() : "Sin docente asignado";
+                    String statusStr = subject.getRecordStatus() == RecordStatus.CLOSED ? "CERRADA" : "ACTIVA";
+
+                    return CriticalSubjectDTO.builder()
+                            .id(String.valueOf(subject.getId()))
+                            .code(subject.getCode())
+                            .name(subject.getName())
+                            .teacherName(teacherName)
+                            .failureRate(Math.round(failureRate * 10.0) / 10.0)
+                            .status(statusStr)
+                            .build();
+                })
+                .sorted((a, b) -> Double.compare(b.getFailureRate(), a.getFailureRate()))
+                .limit(5)
+                .toList();
 
         return DashboardAdminDTO.builder()
                 .totalStudents(totalStudents)
@@ -92,6 +123,7 @@ public class DashboardService {
                 .globalPassRate(globalPassRate)
                 .studentsAtRiskCount(studentsAtRiskCount)
                 .managements(managementSummaries)
+                .criticalSubjects(criticalSubjects)
                 .build();
     }
 

@@ -123,36 +123,26 @@ public class AttendanceService {
             // Caso 1: Asistencia nueva (CREATE)
             if (newAttendances.stream().anyMatch(a -> a.getEnrollment().getId().equals(eId))) {
                 auditLogRepository.save(AuditLog.builder()
-                        // Campos Nuevos
                         .affectedTable("attendance")
                         .recordId(saved.getId())
+                        .userId(teacher.getId())
+                        .action("CREATE")
                         .oldValue(null)
                         .newValue(jsonNewValue)
-                        .action("CREATE")
                         .ipAddress("127.0.0.1")
-                        // Campos Viejos
-                        .entityName("ATTENDANCE")
-                        .entityRefId(saved.getId().toString())
-                        .actionType("CREATE")
-                        .changedBy(teacherEmail)
                         .build());
             } 
             // Caso 2: Asistencia modificada (UPDATE)
             else if (oldStatusMap.containsKey(eId)) {
                 String jsonOldValue = "{\"status\": \"" + oldStatusMap.get(eId) + "\"}";
                 auditLogRepository.save(AuditLog.builder()
-                        // Campos Nuevos
                         .affectedTable("attendance")
                         .recordId(saved.getId())
+                        .userId(teacher.getId())
+                        .action("UPDATE")
                         .oldValue(jsonOldValue)
                         .newValue(jsonNewValue)
-                        .action("UPDATE")
                         .ipAddress("127.0.0.1")
-                        // Campos Viejos
-                        .entityName("ATTENDANCE")
-                        .entityRefId(saved.getId().toString())
-                        .actionType("UPDATE")
-                        .changedBy(teacherEmail)
                         .build());
             }
         }

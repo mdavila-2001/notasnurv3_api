@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class JwtAuthFilterTest {
+public class JwtAuthFilterTest {
 
     @Mock
     private JwtService jwtService;

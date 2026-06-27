@@ -85,7 +85,6 @@ public class GradeService {
         if (isNew) {
             String jsonNewValue = "{\"score\": " + saved.getScore() + "}";
             auditLogRepository.save(AuditLog.builder()
-                    // Campos Nuevos
                     .affectedTable("grade")
                     .recordId(saved.getId())
                     .userId(teacher.getId())
@@ -93,11 +92,6 @@ public class GradeService {
                     .oldValue(null)
                     .newValue(jsonNewValue)
                     .ipAddress("127.0.0.1")
-                    // Campos Viejos (Obligatorios por la BD)
-                    .entityName("GRADE")
-                    .entityRefId(saved.getId().toString())
-                    .actionType("CREATE")
-                    .changedBy(teacher.getEmail())
                     .build());
         }
 
@@ -143,10 +137,6 @@ public class GradeService {
                         .oldValue(null)
                         .newValue(jsonNewValue)
                         .ipAddress("127.0.0.1")
-                        .entityName("GRADE")
-                        .entityRefId(saved.getId().toString())
-                        .actionType("CREATE")
-                        .changedBy(teacher.getEmail())
                         .build());
             }
         }
@@ -211,7 +201,6 @@ public class GradeService {
                 String jsonNewValue = "{\"score\": " + request.score() + "}";
                 
                 auditLogRepository.save(AuditLog.builder()
-                        // Campos Nuevos
                         .affectedTable("grade")
                         .recordId(existingGrade.getId())
                         .userId(teacher.getId())
@@ -219,11 +208,6 @@ public class GradeService {
                         .oldValue(jsonOldValue)
                         .newValue(jsonNewValue)
                         .ipAddress("127.0.0.1")
-                        // Campos Viejos (Obligatorios por la BD)
-                        .entityName("GRADE")
-                        .entityRefId(existingGrade.getId().toString())
-                        .actionType("UPDATE")
-                        .changedBy(teacher.getEmail())
                         .build());
             }
             existingGrade.setScore(request.score());

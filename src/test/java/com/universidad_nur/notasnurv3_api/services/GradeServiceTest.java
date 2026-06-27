@@ -132,10 +132,6 @@ class GradeServiceTest {
         assertEquals("{\"score\": 25}", auditLog.getNewValue());
         assertNull(auditLog.getOldValue());
         assertEquals("127.0.0.1", auditLog.getIpAddress());
-        assertEquals("GRADE", auditLog.getEntityName());
-        assertEquals(savedGrade.getId().toString(), auditLog.getEntityRefId());
-        assertEquals("CREATE", auditLog.getActionType());
-        assertEquals(teacher.getEmail(), auditLog.getChangedBy());
     }
 
     @Test
