@@ -36,8 +36,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DashboardService {
 
-    private static final DateTimeFormatter NEXT_EXAM_FORMATTER = DateTimeFormatter.ofPattern("dd MMM", Locale.forLanguageTag("es-ES"));
-
     private final EnrollmentRepository enrollmentRepository;
     private final SubjectRepository subjectRepository;
     private final AttendanceRepository attendanceRepository;
@@ -150,9 +148,7 @@ public class DashboardService {
 
         int pendingActas = (int) mySubjects.stream().filter(s -> s.getRecordStatus() == RecordStatus.ACTIVE).count();
 
-        double averageAttendance = calculateAverageAttendance(attendanceByEnrollmentId, absencesByEnrollmentId);
         double averageCourseGrade = calculateAverageCourseGrade(subjectEnrollments);
-        String nextExamDate = resolveNextExamDate(mySubjects);
 
         List<SubjectSummaryDTO> subjectSummaries = mySubjects.stream()
                 .map(s -> {
@@ -169,10 +165,8 @@ public class DashboardService {
 
         return DashboardTeacherDTO.builder()
                 .welcomeMessage("Te damos la bienvenida, " + teacher.getFullName())
-                .averageAttendance(averageAttendance)
                 .pendingActasCount(pendingActas)
                 .averageCourseGrade(averageCourseGrade)
-                .nextExamDate(nextExamDate)
                 .subjects(subjectSummaries)
                 .build();
     }
@@ -264,17 +258,6 @@ public class DashboardService {
         return absences == limit - 1;
     }
 
-    private double calculateAverageAttendance(Map<UUID, Long> attendanceByEnrollmentId, Map<UUID, Long> absencesByEnrollmentId) {
-        long totalAttendanceRecords = attendanceByEnrollmentId.values().stream().mapToLong(Long::longValue).sum();
-        long totalAbsences = absencesByEnrollmentId.values().stream().mapToLong(Long::longValue).sum();
-
-        if (totalAttendanceRecords == 0L) {
-            return 0.0;
-        }
-
-        return ((double) (totalAttendanceRecords - totalAbsences) / totalAttendanceRecords) * 100.0;
-    }
-
     private double calculateAverageCourseGrade(List<Enrollment> enrollments) {
         return enrollments.stream()
                 .map(Enrollment::getFinalScore)
@@ -312,16 +295,6 @@ public class DashboardService {
                 .sum();
 
         return Math.min(100.0, (completedWeight / totalWeight) * 100.0);
-    }
-
-    private String resolveNextExamDate(List<Subject> subjects) {
-        return subjects.stream()
-                .map(Subject::getSemester)
-                .map(Semester::getEndDate)
-                .filter(endDate -> !endDate.isBefore(LocalDate.now()))
-                .min(LocalDate::compareTo)
-                .map(date -> date.format(NEXT_EXAM_FORMATTER).toUpperCase(Locale.ROOT))
-                .orElse("N/A");
     }
 
     private String resolveCurrentDegreeName(UUID studentId) {

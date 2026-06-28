@@ -8,9 +8,7 @@ import java.util.List;
 @Builder
 public class DashboardTeacherDTO {
     private String welcomeMessage;
-    private double averageAttendance;
     private int pendingActasCount;
     private double averageCourseGrade;
-    private String nextExamDate;
     private List<SubjectSummaryDTO> subjects;
 }

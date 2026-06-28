@@ -29,13 +29,13 @@ public class SystemSettingController {
     private final SystemSettingService systemSettingService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<SystemSetting>>> getAllSettings() {
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuraciones obtenidas", systemSettingService.getAllSettings()));
     }
 
     @PutMapping("/{key}")
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<SystemSetting>> updateSetting(
             @PathVariable String key,
             @RequestParam String value,
@@ -50,7 +50,7 @@ public class SystemSettingController {
     // ========================================================================
 
   @GetMapping("/global")
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GlobalSettingsResponse>> getGlobalSettings() {
         GlobalSettingsResponse response = systemSettingService.getGlobalSettings();
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuración global obtenida", response));
@@ -58,7 +58,7 @@ public class SystemSettingController {
 
     // Aceptamos POST y PUT aquí para evitar el conflicto
     @RequestMapping(value = "/global", method = {org.springframework.web.bind.annotation.RequestMethod.POST, org.springframework.web.bind.annotation.RequestMethod.PUT})
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GlobalSettingsResponse>> updateGlobalSettings(@RequestBody GlobalSettingsResponse request) {
         GlobalSettingsResponse response = systemSettingService.saveGlobalSettings(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuración global actualizada correctamente", response));
