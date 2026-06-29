@@ -31,14 +31,14 @@ public class SemesterController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<SemesterResponse>>> getAllSemesters() {
         List<SemesterResponse> response = semesterService.getAllSemesters();
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestres obtenidos correctamente", response));
     }
 
     @GetMapping("/by-management/{managementId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ApiResponse<List<SemesterResponse>>> getSemestersByManagement(@PathVariable Integer managementId) {
         List<SemesterResponse> response = semesterService.getSemestersByManagement(managementId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Semestres obtenidos correctamente", response));
@@ -65,7 +65,7 @@ public class SemesterController {
     }
 
     @PutMapping("/{id}/close-subjects")
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> closeSubjectsBySemester(@PathVariable Integer id) {
         subjectService.closeSubjectsBySemester(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Cierre masivo de materias procesado.", null));

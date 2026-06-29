@@ -1,6 +1,7 @@
 package com.universidad_nur.notasnurv3_api.controllers;
 
 import com.universidad_nur.notasnurv3_api.dto.ApiResponse;
+import com.universidad_nur.notasnurv3_api.dto.GradeBulkRequest;
 import com.universidad_nur.notasnurv3_api.dto.GradeRequest;
 import com.universidad_nur.notasnurv3_api.dto.GradeResponse;
 import com.universidad_nur.notasnurv3_api.services.GradeService;
@@ -47,6 +48,16 @@ public class GradeController {
     ) {
         GradeResponse response = gradeService.saveGrade(request, authentication.getName());
         return ResponseEntity.ok(new ApiResponse<>(true, "Calificación registrada correctamente", response));
+    }
+
+    @PostMapping("/save")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
+    public ResponseEntity<ApiResponse<List<GradeResponse>>> saveGrades(
+            @Valid @RequestBody GradeBulkRequest request,
+            Authentication authentication
+    ) {
+        List<GradeResponse> response = gradeService.bulkSaveGrades(request.grades(), authentication.getName());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Calificaciones registradas correctamente", response));
     }
 
     @PostMapping("/bulk")
