@@ -1,15 +1,14 @@
 package com.universidad_nur.notasnurv3_api;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@Suite
+@SelectPackages({
+    "com.universidad_nur.notasnurv3_api.services",
+    "com.universidad_nur.notasnurv3_api.entities",
+    "com.universidad_nur.notasnurv3_api.controllers",
+    "com.universidad_nur.notasnurv3_api.config"
+})
 class Notasnurv3ApiApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
 }

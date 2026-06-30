@@ -1,5 +1,6 @@
 package com.universidad_nur.notasnurv3_api.services;
 
+import com.universidad_nur.notasnurv3_api.dto.GlobalSettingsResponse;
 import com.universidad_nur.notasnurv3_api.entities.Modality;
 import com.universidad_nur.notasnurv3_api.entities.SystemSetting;
 import com.universidad_nur.notasnurv3_api.repositories.SystemSettingRepository;
@@ -94,5 +95,41 @@ public class SystemSettingService {
             case "FLOOR" -> RoundingMode.FLOOR;
             default -> RoundingMode.HALF_UP; // Default NUR standard
         };
+    }
+
+    // ========================================================================
+    // LÓGICA GLOBAL (US-13) - PATRÓN FACADE
+    // ========================================================================
+
+    @Transactional(readOnly = true)
+    public GlobalSettingsResponse getGlobalSettings() {
+        return GlobalSettingsResponse.builder()
+                .academic(GlobalSettingsResponse.AcademicSettingsDto.builder()
+                        .minPassingGrade(getIntValue("MIN_PASSING_GRADE", 51))
+                        .roundingType(getSettingValue("NUR_ROUNDING_MODE", "HALF_UP"))
+                        .globalGradesDeadline(getSettingValue("GLOBAL_GRADES_DEADLINE", ""))
+                        .build())
+                .attendance(GlobalSettingsResponse.AttendanceSettingsDto.builder()
+                        .maxAbsencesPresencial(getIntValue("MAX_ABSENCES_PRESENTIAL", 5))
+                        .maxAbsencesSemiPresencial(getIntValue("MAX_ABSENCES_BLENDED", 3))
+                        .build())
+                .build();
+    }
+
+    @Transactional // ¡CRÍTICO! Garantiza que o se guarda todo, o no se guarda nada.
+    public GlobalSettingsResponse saveGlobalSettings(GlobalSettingsResponse request) {
+        if (request.getAcademic() != null) {
+            updateSetting("MIN_PASSING_GRADE", String.valueOf(request.getAcademic().getMinPassingGrade()), "Nota mínima para aprobar materias");
+            updateSetting("NUR_ROUNDING_MODE", request.getAcademic().getRoundingType(), "Modo de redondeo de notas");
+            updateSetting("GLOBAL_GRADES_DEADLINE", request.getAcademic().getGlobalGradesDeadline(), "Fecha máxima para registro de notas en actas");
+        }
+        
+        if (request.getAttendance() != null) {
+            updateSetting("MAX_ABSENCES_PRESENTIAL", String.valueOf(request.getAttendance().getMaxAbsencesPresencial()), "Límite de faltas para modalidad presencial");
+            updateSetting("MAX_ABSENCES_BLENDED", String.valueOf(request.getAttendance().getMaxAbsencesSemiPresencial()), "Límite de faltas para modalidad semipresencial");
+        }
+
+        // Devolvemos el estado actualizado fresco desde la BD
+        return getGlobalSettings(); 
     }
 }

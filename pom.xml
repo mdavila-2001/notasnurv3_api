@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>24</java.version>
+        <lombok.version>1.18.38</lombok.version>
     </properties>
     <dependencies>
         <dependency>
@@ -77,6 +78,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -107,6 +109,18 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Declarado explícito (ya viene transitivo) para que surefire resuelva
+             ${org.mockito:mockito-core:jar} y lo cargue como -javaagent. -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -154,6 +168,7 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
+                                    <version>${lombok.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -169,9 +184,57 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
+                                    <version>${lombok.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Surefire: carga Mockito como -javaagent real (evita el self-attach que
+                 choca con el agente de JaCoCo en JDK 21+) y preserva el argLine de JaCoCo
+                 mediante late-binding @{argLine}. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -Xshare:off</argLine>
+                    <excludes>
+                        <exclude>**/Notasnurv3ApiApplicationTests.java</exclude>
+                        <exclude>**/Notasnurv3ApiIntegrationTests.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo: cobertura de tests (genera target/site/jacoco/index.html) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <configuration>
+                    <!-- Clases excluidas del cálculo (boilerplate Lombok / sin lógica) -->
+                    <excludes>
+                        <exclude>**/Notasnurv3ApiApplication.*</exclude>
+                        <exclude>**/entities/**</exclude>
+                        <exclude>**/dto/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <!-- Engancha el agente antes de los tests -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- Genera el reporte tras la fase test -->
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

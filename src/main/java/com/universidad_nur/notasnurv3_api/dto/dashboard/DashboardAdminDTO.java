@@ -13,4 +13,6 @@ public class DashboardAdminDTO {
     private double globalPassRate;
     private long studentsAtRiskCount;
     private List<ManagementSummaryDTO> managements;
+    private List<CriticalSubjectDTO> criticalSubjects;
 }
+

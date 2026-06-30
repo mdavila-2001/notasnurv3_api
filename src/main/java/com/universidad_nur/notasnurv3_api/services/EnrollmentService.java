@@ -1,8 +1,8 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import java.util.UUID;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -123,6 +123,7 @@ public class EnrollmentService {
     /**
      * Vista del Docente: Obtiene alumnos inscritos incluyendo el nombre de su carrera.
      */
+    @Transactional(readOnly = true)
     public java.util.List<StudentResponseDTO> getStudentsBySubject(Integer subjectId, Users currentUser) {
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + subjectId + " no fue encontrada."));
@@ -147,6 +148,7 @@ public class EnrollmentService {
 
             return StudentResponseDTO.builder()
                     .studentId(student.getId())
+                    .enrollmentId(enrollment.getId())
                     .fullName(student.getFullName())
                     .ci(student.getCi())
                     .email(student.getEmail())
@@ -158,6 +160,7 @@ public class EnrollmentService {
     /**
      * Vista del Estudiante: Obtiene sus materias indicando a qué carrera pertenece la inscripción.
      */
+    @Transactional(readOnly = true)
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
         java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(currentUser.getId()).stream()
             .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)

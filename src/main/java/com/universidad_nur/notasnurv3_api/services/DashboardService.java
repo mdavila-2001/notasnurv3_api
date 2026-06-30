@@ -1,12 +1,5 @@
 package com.universidad_nur.notasnurv3_api.services;
 
-import com.universidad_nur.notasnurv3_api.dto.dashboard.*;
-import com.universidad_nur.notasnurv3_api.entities.*;
-import com.universidad_nur.notasnurv3_api.repositories.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -17,56 +10,109 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.universidad_nur.notasnurv3_api.entities.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.universidad_nur.notasnurv3_api.dto.dashboard.CriticalSubjectDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardAdminDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardStudentDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.DashboardTeacherDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.EnrolledSubjectDetailDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.GradeComponentDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.ManagementSummaryDTO;
+import com.universidad_nur.notasnurv3_api.dto.dashboard.SubjectSummaryDTO;
+import com.universidad_nur.notasnurv3_api.repositories.AttendanceRepository;
+import com.universidad_nur.notasnurv3_api.repositories.EnrollmentRepository;
+import com.universidad_nur.notasnurv3_api.repositories.EvaluationPlanRepository;
+import com.universidad_nur.notasnurv3_api.repositories.ManagementRepository;
+import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserDegreeRepository;
+import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
-
-        private static final DateTimeFormatter NEXT_EXAM_FORMATTER = DateTimeFormatter.ofPattern("dd MMM", Locale.forLanguageTag("es-ES"));
 
     private final EnrollmentRepository enrollmentRepository;
     private final SubjectRepository subjectRepository;
     private final AttendanceRepository attendanceRepository;
     private final ManagementRepository managementRepository;
     private final UserRepository userRepository;
-        private final UserDegreeRepository userDegreeRepository;
-        private final EvaluationPlanRepository evaluationPlanRepository;
+    private final UserDegreeRepository userDegreeRepository;
+    private final EvaluationPlanRepository evaluationPlanRepository;
     private final SystemSettingService systemSettingService;
 
     @Transactional(readOnly = true)
     public DashboardAdminDTO getAdminDashboard() {
+        // Conteo rápido de métricas base
         long totalStudents = userRepository.countByRole(Role.STUDENT);
         long totalSubjectsWithoutTeacher = subjectRepository.countByTeacherIsNull();
         long totalOpenActas = subjectRepository.countByRecordStatus(RecordStatus.ACTIVE);
 
-                List<Enrollment> activeEnrollments = enrollmentRepository.findByStatusWithDetails(EnrollmentStatus.ACTIVE);
-                Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
-                                activeEnrollments.stream().map(Enrollment::getId).toList()
-                );
-                long studentsAtRiskCount = activeEnrollments.stream()
-                                .filter(enrollment -> isAtRisk(enrollment, absencesByEnrollmentId))
-                                .map(enrollment -> enrollment.getAcademicRecord().getUser().getId())
-                                .distinct()
-                                .count();
+        // Estudiantes en riesgo (Optimizado mediante Map local)
+        List<Enrollment> activeEnrollments = enrollmentRepository.findByStatusWithDetails(EnrollmentStatus.ACTIVE);
+        Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
+                activeEnrollments.stream().map(Enrollment::getId).toList()
+        );
+        long studentsAtRiskCount = activeEnrollments.stream()
+                .filter(enrollment -> isAtRisk(enrollment, absencesByEnrollmentId))
+                .map(enrollment -> enrollment.getAcademicRecord().getUser().getId())
+                .distinct()
+                .count();
 
         List<Management> allManagements = managementRepository.findAll();
         List<ManagementSummaryDTO> managementSummaries = allManagements.stream()
                 .map(m -> {
-                    List<Enrollment> enrollments = enrollmentRepository.findBySubject_Semester_ManagementId(m.getId());
-                    long passed = enrollments.stream().filter(e -> e.getStatus() == EnrollmentStatus.PASSED).count();
-                    double passRate = enrollments.isEmpty() ? 0.0 : ((double) passed / enrollments.size()) * 100;
+                    long studentCount = enrollmentRepository.countBySubject_Semester_ManagementId(m.getId());
+                    long passed = enrollmentRepository.countBySubject_Semester_ManagementIdAndStatus(m.getId(), EnrollmentStatus.PASSED);
+                    double passRate = studentCount == 0 ? 0.0 : ((double) passed / studentCount) * 100;
                     return ManagementSummaryDTO.builder()
                             .id(m.getId())
                             .year(m.getYear())
                             .status(m.getSemesters().isEmpty() ? "CONFIGURING" : "ACTIVE")
-                            .studentCount(enrollments.size())
+                            .studentCount(studentCount)
                             .passRate(passRate)
                             .build();
                 }).toList();
 
         // Para simplificar, tomamos la tasa global de todas las inscripciones históricas
+        long totalEnrollmentsCount = enrollmentRepository.count();
+        long totalPassedCount = enrollmentRepository.countByStatus(EnrollmentStatus.PASSED);
+        double globalPassRate = totalEnrollmentsCount == 0 ? 0.0 : ((double) totalPassedCount / totalEnrollmentsCount) * 100;
+
+        // Calcular materias críticas
         List<Enrollment> allEnrollments = enrollmentRepository.findAll();
-        long totalPassed = allEnrollments.stream().filter(e -> e.getStatus() == EnrollmentStatus.PASSED).count();
-        double globalPassRate = allEnrollments.isEmpty() ? 0.0 : ((double) totalPassed / allEnrollments.size()) * 100;
+        Map<Subject, List<Enrollment>> enrollmentsBySubject = allEnrollments.stream()
+                .filter(e -> e.getSubject() != null)
+                .collect(Collectors.groupingBy(Enrollment::getSubject));
+
+        List<CriticalSubjectDTO> criticalSubjects = enrollmentsBySubject.entrySet().stream()
+                .map(entry -> {
+                    Subject subject = entry.getKey();
+                    List<Enrollment> subjectEnrollments = entry.getValue();
+                    long total = subjectEnrollments.size();
+                    long failed = subjectEnrollments.stream()
+                            .filter(e -> e.getStatus() == EnrollmentStatus.FAILED || e.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE)
+                            .count();
+                    double failureRate = total == 0 ? 0.0 : ((double) failed / total) * 100.0;
+                    String teacherName = subject.getTeacher() != null ? subject.getTeacher().getFullName() : "Sin docente asignado";
+                    String statusStr = subject.getRecordStatus() == RecordStatus.CLOSED ? "CERRADA" : "ACTIVA";
+
+                    return CriticalSubjectDTO.builder()
+                            .id(String.valueOf(subject.getId()))
+                            .code(subject.getCode())
+                            .name(subject.getName())
+                            .teacherName(teacherName)
+                            .failureRate(Math.round(failureRate * 10.0) / 10.0)
+                            .status(statusStr)
+                            .build();
+                })
+                .sorted((a, b) -> Double.compare(b.getFailureRate(), a.getFailureRate()))
+                .limit(5)
+                .toList();
 
         return DashboardAdminDTO.builder()
                 .totalStudents(totalStudents)
@@ -75,6 +121,7 @@ public class DashboardService {
                 .globalPassRate(globalPassRate)
                 .studentsAtRiskCount(studentsAtRiskCount)
                 .managements(managementSummaries)
+                .criticalSubjects(criticalSubjects)
                 .build();
     }
 
@@ -101,9 +148,7 @@ public class DashboardService {
 
         int pendingActas = (int) mySubjects.stream().filter(s -> s.getRecordStatus() == RecordStatus.ACTIVE).count();
 
-        double averageAttendance = calculateAverageAttendance(attendanceByEnrollmentId, absencesByEnrollmentId);
         double averageCourseGrade = calculateAverageCourseGrade(subjectEnrollments);
-        String nextExamDate = resolveNextExamDate(mySubjects);
 
         List<SubjectSummaryDTO> subjectSummaries = mySubjects.stream()
                 .map(s -> {
@@ -120,10 +165,8 @@ public class DashboardService {
 
         return DashboardTeacherDTO.builder()
                 .welcomeMessage("Te damos la bienvenida, " + teacher.getFullName())
-                .averageAttendance(averageAttendance)
                 .pendingActasCount(pendingActas)
                 .averageCourseGrade(averageCourseGrade)
-                .nextExamDate(nextExamDate)
                 .subjects(subjectSummaries)
                 .build();
     }
@@ -155,9 +198,9 @@ public class DashboardService {
                     List<Grade> grades = e.getGrades();
                     List<GradeComponentDTO> breakdown = grades.stream()
                             .map(g -> GradeComponentDTO.builder()
-                                    .name(g.getComponents().getName())
+                                    .name(g.getComponent().getName())
                                     .score(g.getScore().doubleValue())
-                                    .weight(g.getComponents().getWeight().doubleValue())
+                                    .weight(g.getComponent().getWeight().doubleValue())
                                     .build())
                             .toList();
 
@@ -185,103 +228,82 @@ public class DashboardService {
                 .build();
     }
 
-        private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
-                if (enrollmentIds.isEmpty()) {
-                        return Map.of();
-                }
-
-                return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
-                                .collect(Collectors.toMap(
-                                                row -> (UUID) row[0],
-                                                row -> ((Number) row[1]).longValue()
-                                ));
+    private Map<UUID, Long> countAbsencesByEnrollmentIds(List<UUID> enrollmentIds) {
+        if (enrollmentIds.isEmpty()) {
+            return Map.of();
         }
 
-        private Map<UUID, Long> countAttendanceByEnrollmentIds(List<UUID> enrollmentIds) {
-                if (enrollmentIds.isEmpty()) {
-                        return Map.of();
-                }
+        return attendanceRepository.countByEnrollmentIdsAndStatus(enrollmentIds, AttendanceStatus.ABSENT).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
+    }
 
-                return attendanceRepository.countByEnrollmentIds(enrollmentIds).stream()
-                                .collect(Collectors.toMap(
-                                                row -> (UUID) row[0],
-                                                row -> ((Number) row[1]).longValue()
-                                ));
+    private Map<UUID, Long> countAttendanceByEnrollmentIds(List<UUID> enrollmentIds) {
+        if (enrollmentIds.isEmpty()) {
+            return Map.of();
         }
 
-        private boolean isAtRisk(Enrollment enrollment, Map<UUID, Long> absencesByEnrollmentId) {
-                long absences = absencesByEnrollmentId.getOrDefault(enrollment.getId(), 0L);
-                int limit = systemSettingService.getAbsenceLimit(enrollment.getSubject().getModality());
-                return absences == limit - 1;
+        return attendanceRepository.countByEnrollmentIds(enrollmentIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> ((Number) row[1]).longValue()
+                ));
+    }
+
+    private boolean isAtRisk(Enrollment enrollment, Map<UUID, Long> absencesByEnrollmentId) {
+        long absences = absencesByEnrollmentId.getOrDefault(enrollment.getId(), 0L);
+        int limit = systemSettingService.getAbsenceLimit(enrollment.getSubject().getModality());
+        return absences == limit - 1;
+    }
+
+    private double calculateAverageCourseGrade(List<Enrollment> enrollments) {
+        return enrollments.stream()
+                .map(Enrollment::getFinalScore)
+                .filter(Objects::nonNull)
+                .mapToDouble(Integer::doubleValue)
+                .average()
+                .orElse(0.0);
+    }
+
+    private double calculateProgressPercentage(Subject subject, List<Enrollment> enrollments, EvaluationPlan evaluationPlan) {
+        if (subject.getRecordStatus() == RecordStatus.CLOSED) {
+            return 100.0;
         }
 
-        private double calculateAverageAttendance(Map<UUID, Long> attendanceByEnrollmentId, Map<UUID, Long> absencesByEnrollmentId) {
-                long totalAttendanceRecords = attendanceByEnrollmentId.values().stream().mapToLong(Long::longValue).sum();
-                long totalAbsences = absencesByEnrollmentId.values().stream().mapToLong(Long::longValue).sum();
-
-                if (totalAttendanceRecords == 0L) {
-                        return 0.0;
-                }
-
-                return ((double) (totalAttendanceRecords - totalAbsences) / totalAttendanceRecords) * 100.0;
+        if (evaluationPlan == null || evaluationPlan.getComponents() == null || evaluationPlan.getComponents().isEmpty()) {
+            return 0.0;
         }
 
-        private double calculateAverageCourseGrade(List<Enrollment> enrollments) {
-                return enrollments.stream()
-                                .map(Enrollment::getFinalScore)
-                                .filter(Objects::nonNull)
-                                .mapToDouble(Integer::doubleValue)
-                                .average()
-                                .orElse(0.0);
+        Set<Integer> gradedComponentIds = enrollments.stream()
+                .flatMap(enrollment -> enrollment.getGrades().stream())
+                .map(grade -> grade.getComponent().getId())
+                .collect(Collectors.toSet());
+
+        double totalWeight = evaluationPlan.getComponents().stream()
+                .mapToDouble(component -> component.getWeight().doubleValue())
+                .sum();
+
+        if (totalWeight <= 0.0) {
+            return 0.0;
         }
 
-        private double calculateProgressPercentage(Subject subject, List<Enrollment> enrollments, EvaluationPlan evaluationPlan) {
-                if (subject.getRecordStatus() == RecordStatus.CLOSED) {
-                        return 100.0;
-                }
+        double completedWeight = evaluationPlan.getComponents().stream()
+                .filter(component -> gradedComponentIds.contains(component.getId()))
+                .mapToDouble(component -> component.getWeight().doubleValue())
+                .sum();
 
-                if (evaluationPlan == null || evaluationPlan.getComponents() == null || evaluationPlan.getComponents().isEmpty()) {
-                        return 0.0;
-                }
+        return Math.min(100.0, (completedWeight / totalWeight) * 100.0);
+    }
 
-                Set<Integer> gradedComponentIds = enrollments.stream()
-                                .flatMap(enrollment -> enrollment.getGrades().stream())
-                                .map(grade -> grade.getComponents().getId())
-                                .collect(Collectors.toSet());
-
-                double totalWeight = evaluationPlan.getComponents().stream()
-                                .mapToDouble(component -> component.getWeight().doubleValue())
-                                .sum();
-
-                if (totalWeight <= 0.0) {
-                        return 0.0;
-                }
-
-                double completedWeight = evaluationPlan.getComponents().stream()
-                                .filter(component -> gradedComponentIds.contains(component.getId()))
-                                .mapToDouble(component -> component.getWeight().doubleValue())
-                                .sum();
-
-                return Math.min(100.0, (completedWeight / totalWeight) * 100.0);
-        }
-
-        private String resolveNextExamDate(List<Subject> subjects) {
-                return subjects.stream()
-                                .map(Subject::getSemester)
-                                .map(Semester::getEndDate)
-                                .filter(endDate -> !endDate.isBefore(LocalDate.now()))
-                                .min(LocalDate::compareTo)
-                                .map(date -> date.format(NEXT_EXAM_FORMATTER).toUpperCase(Locale.ROOT))
-                                .orElse("N/A");
-        }
-
-        private String resolveCurrentDegreeName(UUID studentId) {
-                return userDegreeRepository.findByUser_Id(studentId).stream()
-                                .filter(userDegree -> userDegree.getStatus() == AcademicStatus.ACTIVE)
-                                .filter(userDegree -> userDegree.getType() == ProfileType.STUDENT)
-                                .map(UserDegree::getDegree)
-                                .map(Degree::getName)
-                                .findFirst()
-                                .orElse("Carrera no asignada");
-        }
+    private String resolveCurrentDegreeName(UUID studentId) {
+        return userDegreeRepository.findByUser_Id(studentId).stream()
+                .filter(userDegree -> userDegree.getStatus() == AcademicStatus.ACTIVE)
+                .filter(userDegree -> userDegree.getType() == ProfileType.STUDENT)
+                .map(UserDegree::getDegree)
+                .map(Degree::getName)
+                .findFirst()
+                .orElse("Carrera no asignada");
+    }
 }

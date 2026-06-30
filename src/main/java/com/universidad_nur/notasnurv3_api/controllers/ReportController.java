@@ -16,9 +16,9 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    @GetMapping("/subjects/{id}/acta-notas/pdf")
+    @GetMapping("/subjects/{id}/grades-report/pdf")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
-    public ResponseEntity<byte[]> downloadActaNotasPdf(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> downloadGradesReportPdf(@PathVariable Integer id) {
         byte[] pdfBytes = reportService.generateActaNotasPdf(id);
 
         HttpHeaders headers = new HttpHeaders();
@@ -31,9 +31,9 @@ public class ReportController {
                 .body(pdfBytes);
     }
 
-    @GetMapping("/subjects/{id}/asistencia/excel")
+    @GetMapping("/subjects/{id}/attendance/excel")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
-    public ResponseEntity<byte[]> downloadAsistenciaExcel(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> downloadAttendanceExcel(@PathVariable Integer id) {
         byte[] excelBytes = reportService.generateAsistenciaExcel(id);
 
         HttpHeaders headers = new HttpHeaders();

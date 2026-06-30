@@ -14,6 +14,10 @@ import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SemesterRepository;
 import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
+import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.config.SecurityAuthorities;
+import org.springframework.security.core.GrantedAuthority;
+import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -85,6 +89,13 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
+    public List<SubjectResponse> getMySubjects(Users currentUser) {
+        return subjectRepository.findByTeacher_Id(currentUser.getId()).stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public SubjectResponse getSubjectById(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada con ID: " + id));
@@ -108,6 +119,9 @@ public class SubjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado."));
             subject.setSemester(semester);
         }
+        if (request.getRecordStatus() != null) {
+    subject.setRecordStatus(request.getRecordStatus());
+}
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
@@ -134,7 +148,7 @@ public class SubjectService {
         return mapToResponseDTO(activatedSubject);
     }
 
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public SubjectResponse closeSubject(Integer id) {
         Subject subject = subjectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
@@ -151,13 +165,36 @@ public class SubjectService {
     }
 
     @Transactional
+    public SubjectResponse closeSubjectByUser(Integer id, String username, Collection<? extends GrantedAuthority> authorities) {
+        Subject subject = subjectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada con ID: " + id));
+
+        boolean isAdmin = authorities.stream()
+                .anyMatch(auth -> auth.getAuthority().equals(SecurityAuthorities.ROLE_ADMIN));
+
+        if (!isAdmin) {
+            // Validar que el usuario sea el docente asignado
+            if (subject.getTeacher() == null || !subject.getTeacher().getEmail().equalsIgnoreCase(username)) {
+                throw new UnauthorizedAccessException("No tienes permisos para cerrar el acta de esta materia.");
+            }
+        }
+
+        // Llamar al método transaccional de cierre (usando self para propagación REQUIRES_NEW si se requiere)
+        return self.closeSubject(id);
+    }
+
+    @Transactional
     public void closeSubjectsBySemester(Integer semesterId) {
-        List<Subject> subjects = subjectRepository.findAll().stream()
-                .filter(s -> s.getSemester().getId().equals(semesterId) && s.getRecordStatus() != RecordStatus.CLOSED)
-                .toList();
+        // Filtrar a nivel de DB directamente en lugar de traer todo a memoria
+        List<Subject> subjects = subjectRepository.findBySemesterIdAndRecordStatusNot(semesterId, RecordStatus.CLOSED);
 
         for (Subject subject : subjects) {
-            self.closeSubject(subject.getId());
+            try {
+                self.closeSubject(subject.getId());
+            } catch (Exception e) {
+                log.error("Fallo al cerrar materia ID {}: {}. Continuando con las siguientes materias del semestre.", 
+                        subject.getId(), e.getMessage());
+            }
         }
     }
 

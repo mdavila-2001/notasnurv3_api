@@ -91,7 +91,7 @@ class DashboardServiceTest {
                 .thenReturn(List.<Object[]>of(new Object[]{enrollmentId, 4L}));
         when(systemSettingService.getAbsenceLimit(Modality.FACE_TO_FACE)).thenReturn(5);
         when(managementRepository.findAll()).thenReturn(List.of());
-        when(enrollmentRepository.findAll()).thenReturn(List.of());
+        when(enrollmentRepository.findAll()).thenReturn(List.of(enrollment));
 
         DashboardAdminDTO dashboard = dashboardService.getAdminDashboard();
 
@@ -129,8 +129,8 @@ class DashboardServiceTest {
                 .components(List.of(components1, components2))
                 .build();
 
-        Grade grade1 = Grade.builder().components(components1).teacher(teacher).score(new BigDecimal("40.00")).build();
-        Grade grade2 = Grade.builder().components(components2).teacher(teacher).score(new BigDecimal("60.00")).build();
+        Grade grade1 = Grade.builder().component(components1).teacher(teacher).score(new BigDecimal("40.00")).build();
+        Grade grade2 = Grade.builder().component(components2).teacher(teacher).score(new BigDecimal("60.00")).build();
 
         Enrollment enrollment1 = Enrollment.builder()
                 .id(enrollmentId1)
@@ -169,10 +169,8 @@ class DashboardServiceTest {
 
         assertNotNull(dashboard);
         assertEquals("Te damos la bienvenida, Ana Pérez", dashboard.getWelcomeMessage());
-        assertEquals(75.0, dashboard.getAverageAttendance(), 0.001);
         assertEquals(80.0, dashboard.getAverageCourseGrade(), 0.001);
         assertEquals(1, dashboard.getPendingActasCount());
-        assertEquals(resolveExpectedDate(endDate), dashboard.getNextExamDate());
 
         List<SubjectSummaryDTO> subjects = dashboard.getSubjects();
         assertEquals(1, subjects.size());

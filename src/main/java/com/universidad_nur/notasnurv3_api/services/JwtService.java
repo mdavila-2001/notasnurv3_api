@@ -3,7 +3,6 @@ package com.universidad_nur.notasnurv3_api.services;
 import com.universidad_nur.notasnurv3_api.entities.Users;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,7 +42,9 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return username != null
+                && username.equals(userDetails.getUsername())
+                && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -60,7 +61,13 @@ public class JwtService {
     }
 
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64URL.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            byte[] keyBytes = java.util.HexFormat.of().parseHex(secretKey);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (IllegalArgumentException e) {
+            byte[] keyBytes = secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            return Keys.hmacShaKeyFor(keyBytes);
+        }
     }
 }
+

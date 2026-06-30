@@ -56,7 +56,7 @@ public class ManagementController {
     }
 
     @GetMapping("/{id}/stats")
-    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN) or hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_SUPER_ADMIN)")
+    @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<ManagementStatsResponse>> getStats(@PathVariable Integer id) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Estadísticas obtenidas correctamente", managementService.getStats(id)));
     }
