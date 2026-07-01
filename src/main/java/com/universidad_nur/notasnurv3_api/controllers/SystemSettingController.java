@@ -49,8 +49,8 @@ public class SystemSettingController {
     // ENDPOINTS GLOBALES (US-13) - PATRÓN FACADE
     // ========================================================================
 
-  @GetMapping("/global")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/global")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ApiResponse<GlobalSettingsResponse>> getGlobalSettings() {
         GlobalSettingsResponse response = systemSettingService.getGlobalSettings();
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuración global obtenida", response));
