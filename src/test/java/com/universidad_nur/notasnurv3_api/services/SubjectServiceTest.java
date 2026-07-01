@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,8 +27,10 @@ import com.universidad_nur.notasnurv3_api.entities.Semester;
 import com.universidad_nur.notasnurv3_api.entities.Management;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SemesterRepository;
@@ -180,6 +183,66 @@ class SubjectServiceTest {
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> subjectService.closeSubjectByUser(999, "admin@nur.edu", authorities)
+        );
+    }
+
+    @Test
+    void updateSubject_exito() {
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setCapacity(40);
+        request.setTeacherId(teacher.getId());
+        request.setSemesterId(semester.getId());
+        request.setRecordStatus(RecordStatus.ACTIVE);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(teacher.getId())).thenReturn(Optional.of(teacher));
+        when(semesterRepository.findById(semester.getId())).thenReturn(Optional.of(semester));
+        
+        teacher.setRole(Role.TEACHER);
+        
+        when(subjectRepository.save(any(Subject.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SubjectResponse response = subjectService.updateSubject(1, request);
+
+        assertNotNull(response);
+        assertEquals("Programacion Avanzada", response.getName());
+        assertEquals(40, response.getCapacity());
+        assertEquals(teacher.getId(), response.getTeacherId());
+        assertEquals(semester.getId(), response.getSemesterId());
+        assertEquals(RecordStatus.ACTIVE, response.getRecordStatus());
+    }
+
+    @Test
+    void updateSubject_docenteNoExiste() {
+        UUID nonExistentTeacherId = UUID.randomUUID();
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setTeacherId(nonExistentTeacherId);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(nonExistentTeacherId)).thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> subjectService.updateSubject(1, request)
+        );
+    }
+
+    @Test
+    void updateSubject_usuarioNoEsDocente() {
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setTeacherId(teacher.getId());
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(teacher.getId())).thenReturn(Optional.of(teacher));
+        
+        teacher.setRole(Role.STUDENT);
+
+        assertThrows(
+                InvalidOperationException.class,
+                () -> subjectService.updateSubject(1, request)
         );
     }
 }

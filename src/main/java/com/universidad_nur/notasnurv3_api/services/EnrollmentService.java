@@ -134,7 +134,8 @@ public class EnrollmentService {
         }
 
         java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId).stream()
-            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE
+                    || enrollment.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE)
             .toList();
 
         return enrollments.stream().map(enrollment -> {
@@ -163,7 +164,8 @@ public class EnrollmentService {
     @Transactional(readOnly = true)
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
         java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(currentUser.getId()).stream()
-            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE)
+            .filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.ACTIVE
+                    || enrollment.getStatus() == EnrollmentStatus.FAILED_BY_ATTENDANCE)
             .toList();
 
         return enrollments.stream().map(enrollment -> {

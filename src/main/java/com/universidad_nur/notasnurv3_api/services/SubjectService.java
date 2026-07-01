@@ -119,9 +119,17 @@ public class SubjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado."));
             subject.setSemester(semester);
         }
+        if (request.getTeacherId() != null) {
+            Users teacher = userRepository.findById(request.getTeacherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
+            if (teacher.getRole() != Role.TEACHER) {
+                throw new InvalidOperationException("El usuario asignado no tiene permisos de docente.");
+            }
+            subject.setTeacher(teacher);
+        }
         if (request.getRecordStatus() != null) {
-    subject.setRecordStatus(request.getRecordStatus());
-}
+            subject.setRecordStatus(request.getRecordStatus());
+        }
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
