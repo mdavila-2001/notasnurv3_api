@@ -16,5 +16,5 @@ public class ManagementStatsResponse {
     private long passedEnrollments;
     private long failedEnrollments;
     private double passRatePercentage;
-    private long studentsAtRisk; // A punto de reprobar por faltas
+    private long studentsAtRisk;
 }

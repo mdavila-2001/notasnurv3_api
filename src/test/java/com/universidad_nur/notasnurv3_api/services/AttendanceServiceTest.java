@@ -102,7 +102,6 @@ class AttendanceServiceTest {
 
     @Test
     void saveBulkAttendance_exito_cuandoDatosSonValidos() {
-        // Arrange
         LocalDate today = LocalDate.now();
         List<StudentAttendance> records = List.of(
                 new StudentAttendance(enrollmentId1, AttendanceStatus.PRESENT),
@@ -115,22 +114,18 @@ class AttendanceServiceTest {
         when(enrollmentRepository.findBySubjectId(101)).thenReturn(enrollmentList);
         when(attendanceRepository.findByEnrollmentIdInAndDate(anyList(), eq(today))).thenReturn(List.of());
 
-        // Simulamos guardado de las asistencias
         Attendance attendance1 = Attendance.builder().id(UUID.randomUUID()).enrollment(enrollment1).date(today).status(AttendanceStatus.PRESENT).build();
         Attendance attendance2 = Attendance.builder().id(UUID.randomUUID()).enrollment(enrollment2).date(today).status(AttendanceStatus.ABSENT).build();
         when(attendanceRepository.saveAll(anyList())).thenReturn(List.of(attendance1, attendance2));
 
-        // Mock para el conteo de faltas
         List<Object[]> absencesCounts = new ArrayList<>();
         absencesCounts.add(new Object[]{enrollmentId1, 1L});
         absencesCounts.add(new Object[]{enrollmentId2, 2L});
         when(attendanceRepository.countByEnrollmentIdsAndStatus(anyList(), eq(AttendanceStatus.ABSENT))).thenReturn(absencesCounts);
         when(systemSettingService.getAbsenceLimit(Modality.FACE_TO_FACE)).thenReturn(5);
 
-        // Act
         attendanceService.saveBulkAttendance(request, "teacher@nur.edu");
 
-        // Assert
         verify(attendanceRepository).saveAll(anyList());
         verify(auditLogRepository, times(2)).save(any(AuditLog.class));
         assertEquals(EnrollmentStatus.ACTIVE, enrollment1.getStatus());
@@ -139,14 +134,12 @@ class AttendanceServiceTest {
 
     @Test
     void saveBulkAttendance_lanzaExcepcion_cuandoFechaEsFutura() {
-        // Arrange
         LocalDate futureDate = LocalDate.now().plusDays(1);
         List<StudentAttendance> records = List.of(
                 new StudentAttendance(enrollmentId1, AttendanceStatus.PRESENT)
         );
         AttendanceBulkRequest request = new AttendanceBulkRequest(101, futureDate, records);
 
-        // Act & Assert
         InvalidOperationException exception = assertThrows(
                 InvalidOperationException.class,
                 () -> attendanceService.saveBulkAttendance(request, "teacher@nur.edu")
@@ -157,7 +150,6 @@ class AttendanceServiceTest {
 
     @Test
     void saveBulkAttendance_lanzaExcepcion_cuandoMateriaEstaCerrada() {
-        // Arrange
         subject.setRecordStatus(RecordStatus.CLOSED);
         LocalDate today = LocalDate.now();
         List<StudentAttendance> records = List.of(
@@ -167,7 +159,6 @@ class AttendanceServiceTest {
 
         when(subjectRepository.findById(101)).thenReturn(Optional.of(subject));
 
-        // Act & Assert
         InvalidOperationException exception = assertThrows(
                 InvalidOperationException.class,
                 () -> attendanceService.saveBulkAttendance(request, "teacher@nur.edu")
@@ -177,12 +168,11 @@ class AttendanceServiceTest {
 
     @Test
     void saveBulkAttendance_lanzaExcepcion_cuandoDocenteNoTienePermiso() {
-        // Arrange
         Users otherTeacher = new Users();
         otherTeacher.setId(UUID.randomUUID());
         otherTeacher.setEmail("other@nur.edu");
         
-        subject.setTeacher(otherTeacher); // Asignado a otro docente
+        subject.setTeacher(otherTeacher);
 
         LocalDate today = LocalDate.now();
         List<StudentAttendance> records = List.of(
@@ -193,7 +183,6 @@ class AttendanceServiceTest {
         when(subjectRepository.findById(101)).thenReturn(Optional.of(subject));
         when(userRepository.findByEmail("teacher@nur.edu")).thenReturn(Optional.of(teacher));
 
-        // Act & Assert
         UnauthorizedAccessException exception = assertThrows(
                 UnauthorizedAccessException.class,
                 () -> attendanceService.saveBulkAttendance(request, "teacher@nur.edu")
@@ -203,7 +192,6 @@ class AttendanceServiceTest {
 
     @Test
     void saveBulkAttendance_marcaEstudianteComoReprobado_cuandoFaltasSuperanLimite_FACE_TO_FACE() {
-        // Arrange
         LocalDate today = LocalDate.now();
         List<StudentAttendance> records = List.of(
                 new StudentAttendance(enrollmentId1, AttendanceStatus.ABSENT)
@@ -218,23 +206,19 @@ class AttendanceServiceTest {
         Attendance attendance1 = Attendance.builder().id(UUID.randomUUID()).enrollment(enrollment1).date(today).status(AttendanceStatus.ABSENT).build();
         when(attendanceRepository.saveAll(anyList())).thenReturn(List.of(attendance1));
 
-        // Simulamos que el estudiante 1 tiene 6 inasistencias en total (límite presencial es 5)
         List<Object[]> absencesCounts = new ArrayList<>();
         absencesCounts.add(new Object[]{enrollmentId1, 6L});
         when(attendanceRepository.countByEnrollmentIdsAndStatus(anyList(), eq(AttendanceStatus.ABSENT))).thenReturn(absencesCounts);
         when(systemSettingService.getAbsenceLimit(Modality.FACE_TO_FACE)).thenReturn(5);
 
-        // Act
         attendanceService.saveBulkAttendance(request, "teacher@nur.edu");
 
-        // Assert
         verify(enrollmentRepository).saveAll(anyList());
         assertEquals(EnrollmentStatus.FAILED_BY_ATTENDANCE, enrollment1.getStatus());
     }
 
     @Test
     void saveBulkAttendance_marcaEstudianteComoReprobado_cuandoFaltasSuperanLimite_BLENDED() {
-        // Arrange
         subject.setModality(Modality.BLENDED);
         LocalDate today = LocalDate.now();
         List<StudentAttendance> records = List.of(
@@ -250,16 +234,13 @@ class AttendanceServiceTest {
         Attendance attendance2 = Attendance.builder().id(UUID.randomUUID()).enrollment(enrollment2).date(today).status(AttendanceStatus.ABSENT).build();
         when(attendanceRepository.saveAll(anyList())).thenReturn(List.of(attendance2));
 
-        // Simulamos que el estudiante 2 tiene 4 inasistencias en total (límite semi-presencial es 3)
         List<Object[]> absencesCounts = new ArrayList<>();
         absencesCounts.add(new Object[]{enrollmentId2, 4L});
         when(attendanceRepository.countByEnrollmentIdsAndStatus(anyList(), eq(AttendanceStatus.ABSENT))).thenReturn(absencesCounts);
         when(systemSettingService.getAbsenceLimit(Modality.BLENDED)).thenReturn(3);
 
-        // Act
         attendanceService.saveBulkAttendance(request, "teacher@nur.edu");
 
-        // Assert
         verify(enrollmentRepository).saveAll(anyList());
         assertEquals(EnrollmentStatus.FAILED_BY_ATTENDANCE, enrollment2.getStatus());
     }

@@ -31,10 +31,8 @@ public class SecurityConfig {
                 corsConfiguration.setAllowCredentials(true);
                 return corsConfiguration;
             }))
-            // API stateless con JWT en header Authorization: no hay sesión/cookie que proteger con CSRF token.
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                // Sólo los endpoints públicos de auth; /me requiere token válido
                 .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/users/**").hasRole("ADMIN")

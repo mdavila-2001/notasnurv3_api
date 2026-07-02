@@ -22,9 +22,6 @@ public class FacultyController {
 
     private final FacultyService facultyService;
 
-    /**
-     * GET /api/faculties - Listar todas las facultades
-     */
     @GetMapping
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<List<FacultyResponse>>> getAllFaculties() {
@@ -32,9 +29,6 @@ public class FacultyController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Facultades obtenidas exitosamente", faculties));
     }
 
-    /**
-     * GET /api/faculties/{id} - Obtener una facultad por ID
-     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<FacultyResponse>> getFacultyById(@PathVariable Integer id) {
@@ -42,9 +36,6 @@ public class FacultyController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Facultad obtenida exitosamente", faculty));
     }
 
-    /**
-     * GET /api/faculties/{facultyId}/stats - Obtener estadísticas de una facultad (alumnos activos)
-     */
     @GetMapping("/{facultyId}/stats")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<FacultyStatsResponse>> getFacultyStats(@PathVariable Integer facultyId) {
@@ -52,9 +43,6 @@ public class FacultyController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Estadísticas obtenidas", stats));
     }
 
-    /**
-     * POST /api/faculties - Crear una nueva facultad
-     */
     @PostMapping
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<FacultyResponse>> createFaculty(@Valid @RequestBody FacultyRequest request) {
@@ -63,9 +51,6 @@ public class FacultyController {
                 .body(new ApiResponse<>(true, "Facultad creada exitosamente", faculty));
     }
 
-    /**
-     * PUT /api/faculties/{id} - Actualizar una facultad existente
-     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<FacultyResponse>> updateFaculty(
@@ -75,9 +60,6 @@ public class FacultyController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Facultad actualizada exitosamente", faculty));
     }
 
-    /**
-     * DELETE /api/faculties/{id} - Eliminar una facultad
-     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<Void>> deleteFaculty(@PathVariable Integer id) {

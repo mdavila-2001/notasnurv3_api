@@ -26,10 +26,6 @@ public class GradeController {
 
     private final GradeService gradeService;
 
-    /**
-     * Obtiene todas las calificaciones registradas para una materia.
-     * Usado por el docente para pre-cargar el grid de notas con los valores ya guardados.
-     */
     @GetMapping("/subject/{subjectId}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_TEACHER)")
     public ResponseEntity<ApiResponse<List<GradeResponse>>> getGradesBySubject(

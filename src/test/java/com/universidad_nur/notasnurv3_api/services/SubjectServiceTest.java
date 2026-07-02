@@ -50,7 +50,6 @@ class SubjectServiceTest {
     @InjectMocks
     private SubjectService subjectService;
 
-    // We also need to inject the "self" mock for the service (due to @Autowired @Lazy self in SubjectService)
     @Mock
     private SubjectService self;
 
@@ -89,7 +88,6 @@ class SubjectServiceTest {
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(SecurityAuthorities.ROLE_ADMIN));
         when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
         
-        // Simular llamada a self.closeSubject(id)
         SubjectResponse expectedResponse = SubjectResponse.builder()
                 .id(1)
                 .code("INF-301")
@@ -102,21 +100,11 @@ class SubjectServiceTest {
                 .management("2026")
                 .build();
 
-        // Para evitar problemas de auto-invocación AOP mock, inyectamos self y simulamos su comportamiento
-        // En SubjectService, closeSubjectByUser hace: return self.closeSubject(id);
-        // Pero espera, "self" en SubjectService es una propiedad inyectada. 
-        // Vamos a configurar la inyección de "self" para que devuelva nuestro Mock.
-        // Pero como "subjectService" se crea con @InjectMocks, podemos setear el campo "self" manualmente.
-        
-        // En la prueba mockeamos closeSubject de subjectService o de self
-        // Si Mockito inyecta "self" como mock, configuramos su retorno.
-        // Vamos a inyectar mock de self en subjectService.
         try {
             java.lang.reflect.Field selfField = SubjectService.class.getDeclaredField("self");
             selfField.setAccessible(true);
             selfField.set(subjectService, self);
         } catch (Exception e) {
-            // No-op
         }
 
         when(self.closeSubject(1)).thenReturn(expectedResponse);
@@ -150,7 +138,6 @@ class SubjectServiceTest {
             selfField.setAccessible(true);
             selfField.set(subjectService, self);
         } catch (Exception e) {
-            // No-op
         }
 
         when(self.closeSubject(1)).thenReturn(expectedResponse);

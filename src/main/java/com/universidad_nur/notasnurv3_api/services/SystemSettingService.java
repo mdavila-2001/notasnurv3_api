@@ -93,13 +93,9 @@ public class SystemSettingService {
             case "DOWN" -> RoundingMode.DOWN;
             case "CEILING" -> RoundingMode.CEILING;
             case "FLOOR" -> RoundingMode.FLOOR;
-            default -> RoundingMode.HALF_UP; // Default NUR standard
+            default -> RoundingMode.HALF_UP;
         };
     }
-
-    // ========================================================================
-    // LÓGICA GLOBAL (US-13) - PATRÓN FACADE
-    // ========================================================================
 
     @Transactional(readOnly = true)
     public GlobalSettingsResponse getGlobalSettings() {
@@ -116,7 +112,7 @@ public class SystemSettingService {
                 .build();
     }
 
-    @Transactional // ¡CRÍTICO! Garantiza que o se guarda todo, o no se guarda nada.
+    @Transactional
     public GlobalSettingsResponse saveGlobalSettings(GlobalSettingsResponse request) {
         if (request.getAcademic() != null) {
             updateSetting("MIN_PASSING_GRADE", String.valueOf(request.getAcademic().getMinPassingGrade()), "Nota mínima para aprobar materias");
@@ -129,7 +125,6 @@ public class SystemSettingService {
             updateSetting("MAX_ABSENCES_BLENDED", String.valueOf(request.getAttendance().getMaxAbsencesSemiPresencial()), "Límite de faltas para modalidad semipresencial");
         }
 
-        // Devolvemos el estado actualizado fresco desde la BD
         return getGlobalSettings(); 
     }
 }
