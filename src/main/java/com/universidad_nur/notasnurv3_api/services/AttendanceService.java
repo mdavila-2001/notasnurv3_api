@@ -63,7 +63,6 @@ public class AttendanceService {
             throw new UnauthorizedAccessException("No tienes permisos para registrar asistencia en esta materia.");
         }
 
-        // 1. Pre-cargar todas las inscripciones de la materia en un mapa para evitar findById individuales
         java.util.List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subject.getId());
         java.util.Map<java.util.UUID, Enrollment> enrollmentMap = enrollments.stream()
                 .collect(java.util.stream.Collectors.toMap(Enrollment::getId, e -> e));
@@ -72,19 +71,17 @@ public class AttendanceService {
                 .map(StudentAttendance::enrollmentId)
                 .toList();
 
-        // Validar que todas las inscripciones enviadas en la petición correspondan a esta materia
+
         for (java.util.UUID rId : enrollmentIdsInRequest) {
             if (!enrollmentMap.containsKey(rId)) {
                 throw new InvalidOperationException("La inscripción " + rId + " no pertenece a la materia.");
             }
         }
 
-        // 2. Pre-cargar en masa asistencias existentes para la fecha y estudiantes
         java.util.List<Attendance> existingAttendances = attendanceRepository.findByEnrollmentIdInAndDate(enrollmentIdsInRequest, request.date());
         java.util.Map<java.util.UUID, Attendance> existingAttendanceMap = existingAttendances.stream()
                 .collect(java.util.stream.Collectors.toMap(a -> a.getEnrollment().getId(), a -> a));
 
-        // 3. Procesar y preparar entidades de asistencia para guardar en masa
         java.util.List<Attendance> attendancesToSave = new java.util.ArrayList<>();
         java.util.List<Attendance> newAttendances = new java.util.ArrayList<>();
         java.util.Map<java.util.UUID, String> oldStatusMap = new java.util.HashMap<>();
@@ -110,17 +107,14 @@ public class AttendanceService {
             attendancesToSave.add(attendance);
         }
 
-        // Guardar todas las asistencias en masa
         java.util.List<Attendance> savedAttendances = attendanceRepository.saveAll(attendancesToSave);
 
-        // Escribir los registros de auditoría
-       // Escribir los registros de auditoría adaptados al esquema real de Neon
-       // Escribir los registros de auditoría (Mandando lo viejo y lo nuevo)
+
         for (Attendance saved : savedAttendances) {
             java.util.UUID eId = saved.getEnrollment().getId();
             String jsonNewValue = "{\"status\": \"" + saved.getStatus().name() + "\"}";
 
-            // Caso 1: Asistencia nueva (CREATE)
+
             if (newAttendances.stream().anyMatch(a -> a.getEnrollment().getId().equals(eId))) {
                 auditLogRepository.save(AuditLog.builder()
                         .affectedTable("attendance")
@@ -131,9 +125,7 @@ public class AttendanceService {
                         .newValue(jsonNewValue)
                         .ipAddress("127.0.0.1")
                         .build());
-            } 
-            // Caso 2: Asistencia modificada (UPDATE)
-            else if (oldStatusMap.containsKey(eId)) {
+            } else if (oldStatusMap.containsKey(eId)) {
                 String jsonOldValue = "{\"status\": \"" + oldStatusMap.get(eId) + "\"}";
                 auditLogRepository.save(AuditLog.builder()
                         .affectedTable("attendance")
@@ -146,11 +138,9 @@ public class AttendanceService {
                         .build());
             }
         }
-        // 4. Pre-cargar el conteo total acumulado de inasistencias en una única consulta agregada
         java.util.List<java.util.UUID> allEnrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
         java.util.Map<java.util.UUID, Long> absencesCountMap = countAbsencesByEnrollmentIds(allEnrollmentIds);
 
-        // 5. Conciliar estados de las inscripciones y persistir cambios en masa
         java.util.List<Enrollment> enrollmentsToUpdate = new java.util.ArrayList<>();
         int limit = systemSettingService.getAbsenceLimit(subject.getModality());
 

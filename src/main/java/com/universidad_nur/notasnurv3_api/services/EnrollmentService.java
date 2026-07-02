@@ -44,7 +44,6 @@ public class EnrollmentService {
 
     @Transactional
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
-        // 1. Verificar Estudiante (UserDegree es el expediente académico)
         UserDegree academicRecord = userDegreeRepository.findById(request.userDegreeId())
                 .orElseThrow(() -> new ResourceNotFoundException("El expediente académico con ID " + request.userDegreeId() + " no fue encontrado."));
 
@@ -52,7 +51,6 @@ public class EnrollmentService {
             throw new InvalidOperationException("No se puede inscribir: El expediente del alumno no se encuentra ACTIVO en esta carrera.");
         }
 
-        // 2. Verificar Materia
         Subject subject = subjectRepository.findById(request.subjectId())
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + request.subjectId() + " no fue encontrada."));
 
@@ -76,7 +74,6 @@ public class EnrollmentService {
                     "No se pudo completar la inscripción por una modificación concurrente en los cupos. Intente nuevamente.", ex);
         }
 
-        // Crear e inscribir
         Enrollment enrollment = Enrollment.builder()
                 .academicRecord(academicRecord)
                 .subject(subject)
@@ -120,15 +117,13 @@ public class EnrollmentService {
         enrollmentRepository.save(enrollment);
     }
 
-    /**
-     * Vista del Docente: Obtiene alumnos inscritos incluyendo el nombre de su carrera.
-     */
+
     @Transactional(readOnly = true)
     public java.util.List<StudentResponseDTO> getStudentsBySubject(Integer subjectId, Users currentUser) {
         Subject subject = subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new ResourceNotFoundException("La materia con ID " + subjectId + " no fue encontrada."));
 
-        // Seguridad: Solo Admin o el Profesor de la materia pueden ver los datos
+
         if (!currentUser.getRole().isAdmin() && (subject.getTeacher() == null || !subject.getTeacher().getId().equals(currentUser.getId()))) {
             throw new UnauthorizedAccessException("No tienes permisos para ver los alumnos de esta materia.");
         }
@@ -142,7 +137,6 @@ public class EnrollmentService {
             UserDegree academicRecord = enrollment.getAcademicRecord();
             Users student = academicRecord.getUser();
 
-            // Navegación US-12: Enrollment -> AcademicRecord (UserDegree) -> Degree -> Name
             String degreeName = (academicRecord != null && academicRecord.getDegree() != null)
                     ? academicRecord.getDegree().getName()
                     : "Carrera no asignada";
@@ -158,9 +152,7 @@ public class EnrollmentService {
         }).toList();
     }
 
-    /**
-     * Vista del Estudiante: Obtiene sus materias indicando a qué carrera pertenece la inscripción.
-     */
+
     @Transactional(readOnly = true)
     public java.util.List<MySubjectResponseDTO> getMySubjects(Users currentUser) {
         java.util.List<Enrollment> enrollments = enrollmentRepository.findByAcademicRecord_UserId(currentUser.getId()).stream()
@@ -172,7 +164,6 @@ public class EnrollmentService {
             Subject subject = enrollment.getSubject();
             String teacherName = subject.getTeacher() != null ? subject.getTeacher().getFullName() : "Sin asignar";
             
-            // Navegación US-12: Identificar carrera según el expediente de la inscripción
             String degreeName = (enrollment.getAcademicRecord() != null && enrollment.getAcademicRecord().getDegree() != null)
                     ? enrollment.getAcademicRecord().getDegree().getName()
                     : "Carrera no asignada";
