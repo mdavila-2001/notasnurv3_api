@@ -42,21 +42,11 @@ public class ReportService {
     private final EnrollmentRepository enrollmentRepository;
     private final AttendanceRepository attendanceRepository;
 
-    // =========================================================================
-    // FASE DE PROCESAMIENTO PESADO (MÉTODOS PÚBLICOS - SIN @TRANSACTIONAL)
-    // =========================================================================
-
-    /**
-     * Genera el PDF del Acta de Notas utilizando iText de forma aislada.
-     * Anotado con @Transactional(readOnly = true) para resolver la auto-invocación AOP.
-     */
     @Transactional(readOnly = true)
     public byte[] generateActaNotasPdf(Integer subjectId) {
-        // 1. Fase rápida transaccional: Extrae la data requerida y libera la DB de inmediato
         Subject subject = this.getSubjectForReport(subjectId);
         List<Enrollment> enrollments = this.getEnrollmentsForReport(subjectId);
 
-        // 2. Fase pesada de CPU: Construcción del documento PDF en memoria local
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4);
             PdfWriter.getInstance(document, baos);
@@ -100,19 +90,13 @@ public class ReportService {
         }
     }
 
-    /**
-     * Genera el reporte de Asistencias en Excel utilizando Apache POI.
-     * Anotado con @Transactional(readOnly = true) para resolver la auto-invocación AOP.
-     */
     @Transactional(readOnly = true)
     public byte[] generateAsistenciaExcel(Integer subjectId) {
-        // 1. Fase rápida transaccional: Consulta veloz de datos relacionales
         List<Enrollment> enrollments = this.getEnrollmentsWithSubjectValidation(subjectId);
         
         List<UUID> enrollmentIds = enrollments.stream().map(Enrollment::getId).toList();
         Map<UUID, Long> absencesByEnrollmentId = this.getAbsencesContext(enrollmentIds);
 
-        // 2. Fase pesada de CPU: Generación de celdas y auto-ajuste de columnas de Excel
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Asistencias");
 
@@ -150,10 +134,6 @@ public class ReportService {
         }
     }
 
-    // =========================================================================
-    // FASE DE ACCESO ÁGIL A LA DB (MÉTODOS PRIVADOS QUE HEREDAN TRANSACCIÓN)
-    // =========================================================================
-
     protected Subject getSubjectForReport(Integer subjectId) {
         return subjectRepository.findById(subjectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada."));
@@ -180,10 +160,6 @@ public class ReportService {
                         row -> ((Number) row[1]).longValue()
                 ));
     }
-
-    // =========================================================================
-    // MÉTODOS AUXILIARES
-    // =========================================================================
 
     private void addTableHeader(PdfPTable table, String... headers) {
         for (String header : headers) {

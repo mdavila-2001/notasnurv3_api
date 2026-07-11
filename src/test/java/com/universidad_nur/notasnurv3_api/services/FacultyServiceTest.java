@@ -58,8 +58,6 @@ class FacultyServiceTest {
                 .build();
     }
 
-    // ── getAll ────────────────────────────────────────────────────────────────
-
     @Test
     void getAll_returnsEmptyList_whenNoFacultiesExist() {
         when(facultyRepository.findAll()).thenReturn(List.of());
@@ -85,8 +83,6 @@ class FacultyServiceTest {
         verify(facultyRepository, times(1)).findAll();
     }
 
-    // ── getById ────────────────────────────────────────────────────────────────
-
     @Test
     void getById_throwsResourceNotFoundException_whenFacultyDoesNotExist() {
         when(facultyRepository.findById(99)).thenReturn(Optional.empty());
@@ -107,8 +103,6 @@ class FacultyServiceTest {
         assertEquals("FT", result.code());
         verify(facultyRepository, times(1)).findById(1);
     }
-
-    // ── getStats ──────────────────────────────────────────────────────────────
 
     @Test
     void shouldReturnStats_WhenFacultyExists() {
@@ -133,8 +127,6 @@ class FacultyServiceTest {
         verify(facultyRepository, times(1)).findById(2);
         verify(userDegreeRepository, never()).countByDegree_Faculty_IdAndStatus(anyInt(), any());
     }
-
-    // ── create ────────────────────────────────────────────────────────────────
 
     @Test
     void create_throwsDuplicateResourceException_whenCodeAlreadyExists() {
@@ -172,8 +164,6 @@ class FacultyServiceTest {
         assertEquals("FI", result.code());
         verify(facultyRepository, times(1)).save(any(Faculty.class));
     }
-
-    // ── update ────────────────────────────────────────────────────────────────
 
     @Test
     void update_throwsResourceNotFoundException_whenFacultyDoesNotExist() {
@@ -217,8 +207,6 @@ class FacultyServiceTest {
         assertEquals("FT", result.code());
         verify(facultyRepository, times(1)).save(mockFaculty);
     }
-
-    // ── delete ────────────────────────────────────────────────────────────────
 
     @Test
     void delete_throwsResourceNotFoundException_whenFacultyDoesNotExist() {

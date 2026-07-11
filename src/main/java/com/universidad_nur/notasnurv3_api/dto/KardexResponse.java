@@ -16,7 +16,6 @@ import java.util.Map;
 public class KardexResponse {
     private String studentName;
     private String degreeName;
-    // Map de Gestión/Semestre a la lista de materias de ese semestre
     private Map<String, List<SubjectGradeResponse>> historyBySemester;
 
     @Data

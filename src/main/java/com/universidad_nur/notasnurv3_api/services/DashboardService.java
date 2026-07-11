@@ -47,12 +47,10 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public DashboardAdminDTO getAdminDashboard() {
-        // Conteo rápido de métricas base
         long totalStudents = userRepository.countByRole(Role.STUDENT);
         long totalSubjectsWithoutTeacher = subjectRepository.countByTeacherIsNull();
         long totalOpenActas = subjectRepository.countByRecordStatus(RecordStatus.ACTIVE);
 
-        // Estudiantes en riesgo (Optimizado mediante Map local)
         List<Enrollment> activeEnrollments = enrollmentRepository.findByStatusWithDetails(EnrollmentStatus.ACTIVE);
         Map<UUID, Long> absencesByEnrollmentId = countAbsencesByEnrollmentIds(
                 activeEnrollments.stream().map(Enrollment::getId).toList()
@@ -78,12 +76,10 @@ public class DashboardService {
                             .build();
                 }).toList();
 
-        // Para simplificar, tomamos la tasa global de todas las inscripciones históricas
         long totalEnrollmentsCount = enrollmentRepository.count();
         long totalPassedCount = enrollmentRepository.countByStatus(EnrollmentStatus.PASSED);
         double globalPassRate = totalEnrollmentsCount == 0 ? 0.0 : ((double) totalPassedCount / totalEnrollmentsCount) * 100;
 
-        // Calcular materias críticas
         List<Enrollment> allEnrollments = enrollmentRepository.findAll();
         Map<Subject, List<Enrollment>> enrollmentsBySubject = allEnrollments.stream()
                 .filter(e -> e.getSubject() != null)

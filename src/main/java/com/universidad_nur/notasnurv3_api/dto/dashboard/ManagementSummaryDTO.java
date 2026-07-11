@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor  // 👈 Requerido por JPA
-@AllArgsConstructor // 👈 REQUERIDO para el "SELECT new ..."
+@NoArgsConstructor
+@AllArgsConstructor
 public class ManagementSummaryDTO {
     private Integer id;
     private Integer year;
-    private String status; // ACTIVE, CLOSED, CONFIGURING
+    private String status;
     private long studentCount;
     private double passRate;
 }

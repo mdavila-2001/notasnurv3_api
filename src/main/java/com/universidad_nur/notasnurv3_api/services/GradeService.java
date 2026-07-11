@@ -39,11 +39,7 @@ public class GradeService {
     private final SystemSettingService systemSettingService;
     private final AuditLogRepository auditLogRepository;
 
-    /**
-     * Obtiene todas las calificaciones de todos los estudiantes de una materia.
-     * Valida que el docente autenticado sea el titular de la materia.
-     * Reutiliza EnrollmentRepository.findBySubjectId que ya carga grades via JOIN FETCH.
-     */
+
     @Transactional(readOnly = true)
     public List<GradeResponse> getGradesBySubject(Integer subjectId, String teacherEmail) {
         Users teacher = userRepository.findByEmail(teacherEmail)
@@ -51,7 +47,7 @@ public class GradeService {
 
         List<Enrollment> enrollments = enrollmentRepository.findBySubjectId(subjectId);
 
-        // Validar que el docente sea el titular de al menos una de las inscripciones
+
         if (!enrollments.isEmpty()) {
             Subject subject = enrollments.get(0).getSubject();
             if (subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
@@ -158,7 +154,6 @@ public class GradeService {
 
         Subject subject = enrollment.getSubject();
 
-        // Validar límite temporal de registro/modificación de notas
         int graceDays = systemSettingService.getIntValue("GRADING_GRACE_DAYS", 0);
         LocalDate deadline = subject.getSemester().getEndDate().plusDays(graceDays);
         if (LocalDate.now().isAfter(deadline)) {
@@ -176,17 +171,17 @@ public class GradeService {
         Components components = componentRepository.findById(request.componentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Componente no encontrado."));
 
-        // Validar que el componente pertenece a la materia en la que el estudiante está inscrito
+
         if (!components.getPlan().getSubject().getId().equals(subject.getId())) {
             throw new InvalidOperationException("El componente no pertenece a la materia inscrita.");
         }
 
-        // Validar que la nota sea mayor o igual a cero
+
         if (request.score().compareTo(BigDecimal.ZERO) < 0) {
             throw new InvalidOperationException("La nota no puede ser negativa.");
         }
 
-        // Validar que la nota no sobrepase el peso del componente
+
         if (request.score().compareTo(components.getWeight()) > 0) {
             throw new InvalidOperationException("La nota (" + request.score() + ") supera la ponderación del componente (" + components.getWeight() + ").");
         }

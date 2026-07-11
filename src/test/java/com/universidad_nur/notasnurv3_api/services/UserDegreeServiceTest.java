@@ -35,7 +35,6 @@ class UserDegreeServiceTest {
 
     @Test
     void getByUserId_shouldReturnMappedResponses() {
-        // Arrange
         UUID userId = UUID.randomUUID();
         Users user = Users.builder().id(userId).name("Juan").lastName("Pérez").build();
         Degree degree = Degree.builder().id(1).name("Ingeniería de Sistemas").build();
@@ -49,10 +48,8 @@ class UserDegreeServiceTest {
 
         when(userDegreeRepository.findByUser_Id(userId)).thenReturn(List.of(userDegree));
 
-        // Act
         List<UserDegreeResponse> result = userDegreeService.getByUserId(userId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(10, result.get(0).getId());
@@ -63,14 +60,11 @@ class UserDegreeServiceTest {
 
     @Test
     void getByUserId_shouldReturnEmptyList_WhenNoRecordsFound() {
-        // Arrange
         UUID userId = UUID.randomUUID();
         when(userDegreeRepository.findByUser_Id(userId)).thenReturn(List.of());
 
-        // Act
         List<UserDegreeResponse> result = userDegreeService.getByUserId(userId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(0, result.size());
     }

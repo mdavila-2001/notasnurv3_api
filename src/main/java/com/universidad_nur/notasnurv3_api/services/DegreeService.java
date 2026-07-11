@@ -24,9 +24,6 @@ public class DegreeService {
     private final FacultyRepository facultyRepository;
     private final UserDegreeRepository userDegreeRepository;
 
-    /**
-     * Obtener todas las carreras con información de facultad
-     */
     @Transactional(readOnly = true)
     public List<DegreeResponse> getAll() {
         return degreeRepository.findAllWithFaculty()
@@ -35,9 +32,6 @@ public class DegreeService {
                 .toList();
     }
 
-    /**
-     * Obtener una carrera por ID
-     */
     @Transactional(readOnly = true)
     public DegreeResponse getById(Integer id) {
         Degree degree = degreeRepository.findByIdWithFaculty(id)
@@ -45,21 +39,18 @@ public class DegreeService {
         return mapToResponse(degree);
     }
 
-    /**
-     * Crear una nueva carrera
-     */
     @Transactional
     public DegreeResponse create(DegreeRequest request) {
-        // Validar que la facultad exista
+
         Faculty faculty = facultyRepository.findById(request.facultyId())
                 .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + request.facultyId() + " no fue encontrada."));
 
-        // Validar que el código no exista
+
         if (degreeRepository.existsByCode(request.code())) {
             throw new DuplicateResourceException("Ya existe una carrera con el código: " + request.code());
         }
 
-        // Validar que el nombre no exista
+
         if (degreeRepository.existsByName(request.name())) {
             throw new DuplicateResourceException("Ya existe una carrera con el nombre: " + request.name());
         }
@@ -74,27 +65,24 @@ public class DegreeService {
         return mapToResponse(saved);
     }
 
-    /**
-     * Actualizar una carrera existente
-     */
     @Transactional
     public DegreeResponse update(Integer id, DegreeRequest request) {
         Degree degree = degreeRepository.findByIdWithFaculty(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La carrera con ID " + id + " no fue encontrada."));
 
-        // Validar que la nueva facultad exista (si cambia)
+
         Faculty faculty = degree.getFaculty();
         if (!degree.getFaculty().getId().equals(request.facultyId())) {
             faculty = facultyRepository.findById(request.facultyId())
                     .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + request.facultyId() + " no fue encontrada."));
         }
 
-        // Validar que el código no esté duplicado (excepto el mismo registro)
+
         if (!degree.getCode().equals(request.code()) && degreeRepository.existsByCodeAndIdNot(request.code(), id)) {
             throw new DuplicateResourceException("Ya existe otra carrera con el código: " + request.code());
         }
 
-        // Validar que el nombre no esté duplicado (excepto el mismo registro)
+
         if (!degree.getName().equals(request.name()) && degreeRepository.existsByNameAndIdNot(request.name(), id)) {
             throw new DuplicateResourceException("Ya existe otra carrera con el nombre: " + request.name());
         }
@@ -107,15 +95,12 @@ public class DegreeService {
         return mapToResponse(updated);
     }
 
-    /**
-     * Eliminar una carrera (solo si no tiene expedientes académicos asociados)
-     */
     @Transactional
     public void delete(Integer id) {
         Degree degree = degreeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La carrera con ID " + id + " no fue encontrada."));
 
-        // Validar que no existan expedientes académicos (UserDegree) asociados
+
         long userDegreeCount = userDegreeRepository.countByDegree_Id(id);
         if (userDegreeCount > 0) {
             throw new InvalidOperationException("No se puede eliminar la carrera porque tiene " + userDegreeCount + " expediente(s) académico(s) asociado(s).");
@@ -124,9 +109,6 @@ public class DegreeService {
         degreeRepository.delete(degree);
     }
 
-    /**
-     * Mapear entidad Degree a DTO DegreeResponse
-     */
     private DegreeResponse mapToResponse(Degree degree) {
         return new DegreeResponse(
                 degree.getId(),
