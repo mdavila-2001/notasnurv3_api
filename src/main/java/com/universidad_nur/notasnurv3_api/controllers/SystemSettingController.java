@@ -45,18 +45,13 @@ public class SystemSettingController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuración actualizada", updated));
     }
 
-    // ========================================================================
-    // ENDPOINTS GLOBALES (US-13) - PATRÓN FACADE
-    // ========================================================================
-
-  @GetMapping("/global")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/global")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResponseEntity<ApiResponse<GlobalSettingsResponse>> getGlobalSettings() {
         GlobalSettingsResponse response = systemSettingService.getGlobalSettings();
         return ResponseEntity.ok(new ApiResponse<>(true, "Configuración global obtenida", response));
     }
 
-    // Aceptamos POST y PUT aquí para evitar el conflicto
     @RequestMapping(value = "/global", method = {org.springframework.web.bind.annotation.RequestMethod.POST, org.springframework.web.bind.annotation.RequestMethod.PUT})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<GlobalSettingsResponse>> updateGlobalSettings(@RequestBody GlobalSettingsResponse request) {

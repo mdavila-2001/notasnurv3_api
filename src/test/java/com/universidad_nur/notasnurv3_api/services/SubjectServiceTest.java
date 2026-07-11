@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,8 +27,10 @@ import com.universidad_nur.notasnurv3_api.entities.Semester;
 import com.universidad_nur.notasnurv3_api.entities.Management;
 import com.universidad_nur.notasnurv3_api.entities.Subject;
 import com.universidad_nur.notasnurv3_api.entities.Users;
+import com.universidad_nur.notasnurv3_api.entities.Role;
 import com.universidad_nur.notasnurv3_api.exceptions.ResourceNotFoundException;
 import com.universidad_nur.notasnurv3_api.exceptions.UnauthorizedAccessException;
+import com.universidad_nur.notasnurv3_api.exceptions.InvalidOperationException;
 import com.universidad_nur.notasnurv3_api.repositories.SubjectRepository;
 import com.universidad_nur.notasnurv3_api.repositories.UserRepository;
 import com.universidad_nur.notasnurv3_api.repositories.SemesterRepository;
@@ -47,7 +50,6 @@ class SubjectServiceTest {
     @InjectMocks
     private SubjectService subjectService;
 
-    // We also need to inject the "self" mock for the service (due to @Autowired @Lazy self in SubjectService)
     @Mock
     private SubjectService self;
 
@@ -86,7 +88,6 @@ class SubjectServiceTest {
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(SecurityAuthorities.ROLE_ADMIN));
         when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
         
-        // Simular llamada a self.closeSubject(id)
         SubjectResponse expectedResponse = SubjectResponse.builder()
                 .id(1)
                 .code("INF-301")
@@ -99,21 +100,11 @@ class SubjectServiceTest {
                 .management("2026")
                 .build();
 
-        // Para evitar problemas de auto-invocación AOP mock, inyectamos self y simulamos su comportamiento
-        // En SubjectService, closeSubjectByUser hace: return self.closeSubject(id);
-        // Pero espera, "self" en SubjectService es una propiedad inyectada. 
-        // Vamos a configurar la inyección de "self" para que devuelva nuestro Mock.
-        // Pero como "subjectService" se crea con @InjectMocks, podemos setear el campo "self" manualmente.
-        
-        // En la prueba mockeamos closeSubject de subjectService o de self
-        // Si Mockito inyecta "self" como mock, configuramos su retorno.
-        // Vamos a inyectar mock de self en subjectService.
         try {
             java.lang.reflect.Field selfField = SubjectService.class.getDeclaredField("self");
             selfField.setAccessible(true);
             selfField.set(subjectService, self);
         } catch (Exception e) {
-            // No-op
         }
 
         when(self.closeSubject(1)).thenReturn(expectedResponse);
@@ -147,7 +138,6 @@ class SubjectServiceTest {
             selfField.setAccessible(true);
             selfField.set(subjectService, self);
         } catch (Exception e) {
-            // No-op
         }
 
         when(self.closeSubject(1)).thenReturn(expectedResponse);
@@ -180,6 +170,66 @@ class SubjectServiceTest {
         assertThrows(
                 ResourceNotFoundException.class,
                 () -> subjectService.closeSubjectByUser(999, "admin@nur.edu", authorities)
+        );
+    }
+
+    @Test
+    void updateSubject_exito() {
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setCapacity(40);
+        request.setTeacherId(teacher.getId());
+        request.setSemesterId(semester.getId());
+        request.setRecordStatus(RecordStatus.ACTIVE);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(teacher.getId())).thenReturn(Optional.of(teacher));
+        when(semesterRepository.findById(semester.getId())).thenReturn(Optional.of(semester));
+        
+        teacher.setRole(Role.TEACHER);
+        
+        when(subjectRepository.save(any(Subject.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SubjectResponse response = subjectService.updateSubject(1, request);
+
+        assertNotNull(response);
+        assertEquals("Programacion Avanzada", response.getName());
+        assertEquals(40, response.getCapacity());
+        assertEquals(teacher.getId(), response.getTeacherId());
+        assertEquals(semester.getId(), response.getSemesterId());
+        assertEquals(RecordStatus.ACTIVE, response.getRecordStatus());
+    }
+
+    @Test
+    void updateSubject_docenteNoExiste() {
+        UUID nonExistentTeacherId = UUID.randomUUID();
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setTeacherId(nonExistentTeacherId);
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(nonExistentTeacherId)).thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> subjectService.updateSubject(1, request)
+        );
+    }
+
+    @Test
+    void updateSubject_usuarioNoEsDocente() {
+        com.universidad_nur.notasnurv3_api.dto.SubjectRequest request = new com.universidad_nur.notasnurv3_api.dto.SubjectRequest();
+        request.setName("Programacion Avanzada");
+        request.setTeacherId(teacher.getId());
+
+        when(subjectRepository.findById(1)).thenReturn(Optional.of(subject));
+        when(userRepository.findById(teacher.getId())).thenReturn(Optional.of(teacher));
+        
+        teacher.setRole(Role.STUDENT);
+
+        assertThrows(
+                InvalidOperationException.class,
+                () -> subjectService.updateSubject(1, request)
         );
     }
 }

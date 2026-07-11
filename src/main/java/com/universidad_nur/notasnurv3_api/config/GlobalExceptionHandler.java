@@ -34,14 +34,12 @@ public class GlobalExceptionHandler {
         return ex.getStatusCode().toString();
     }
     
-    // 0. Atrapa excepciones con status HTTP específico (como 501 Not Implemented)
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Void>> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatusCode())
                 .body(new ApiResponse<>(false, resolveResponseStatusMessage(ex), null));
     }
 
-    // 1. Atrapa los errores de validación (como cuando te olvidaste de mandar el correo)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -53,18 +51,14 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, "Error en los datos enviados", errors));
     }
 
-    // 2. Atrapa los errores de Login fallido de Spring Security
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiResponse<>(false, "Credenciales inválidas", null));
     }
 
-    // 3. Atrapa nuestros RuntimeExceptions (las reglas de negocio que programamos)
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeExceptions(RuntimeException ex) {
-        // Si no es un RuntimeException genérico directo, ni una excepción de nuestro paquete de excepciones personalizadas,
-        // entonces es un error inesperado del sistema (ej. NullPointerException, IllegalArgumentException).
         if (ex.getClass() != RuntimeException.class && !ex.getClass().getName().startsWith("com.universidad_nur.notasnurv3_api.exceptions.")) {
             return handleAllExceptions(ex);
         }
@@ -72,7 +66,6 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, ex.getMessage(), null));
     }
 
-    // 4. Atrapa excepciones inesperadas del sistema de forma segura con HTTP 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAllExceptions(Exception ex) {
         log.error("Excepción inesperada no controlada: ", ex);
@@ -80,7 +73,6 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, "Ocurrió un error inesperado en el servidor", null));
     }
 
-    // 5. Atrapa explícitamente excepciones de número de semestre inválido
     @ExceptionHandler(InvalidSemesterNumberException.class)
     public ResponseEntity<ApiResponse<Void>> handleInvalidSemesterNumberException(InvalidSemesterNumberException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

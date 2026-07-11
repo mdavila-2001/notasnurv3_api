@@ -119,9 +119,17 @@ public class SubjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("Semestre no encontrado."));
             subject.setSemester(semester);
         }
+        if (request.getTeacherId() != null) {
+            Users teacher = userRepository.findById(request.getTeacherId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado."));
+            if (teacher.getRole() != Role.TEACHER) {
+                throw new InvalidOperationException("El usuario asignado no tiene permisos de docente.");
+            }
+            subject.setTeacher(teacher);
+        }
         if (request.getRecordStatus() != null) {
-    subject.setRecordStatus(request.getRecordStatus());
-}
+            subject.setRecordStatus(request.getRecordStatus());
+        }
 
         return mapToResponseDTO(subjectRepository.save(subject));
     }
@@ -158,7 +166,6 @@ public class SubjectService {
         subject.setRecordStatus(RecordStatus.CLOSED);
         subjectRepository.save(subject);
 
-        // Generar un log definitivo del acta
         log.info("Log de Acta Definitiva: Materia ID {} ({}) ha sido CERRADA.", id, subject.getName());
 
         return mapToResponseDTO(subject);
@@ -173,19 +180,16 @@ public class SubjectService {
                 .anyMatch(auth -> auth.getAuthority().equals(SecurityAuthorities.ROLE_ADMIN));
 
         if (!isAdmin) {
-            // Validar que el usuario sea el docente asignado
             if (subject.getTeacher() == null || !subject.getTeacher().getEmail().equalsIgnoreCase(username)) {
                 throw new UnauthorizedAccessException("No tienes permisos para cerrar el acta de esta materia.");
             }
         }
 
-        // Llamar al método transaccional de cierre (usando self para propagación REQUIRES_NEW si se requiere)
         return self.closeSubject(id);
     }
 
     @Transactional
     public void closeSubjectsBySemester(Integer semesterId) {
-        // Filtrar a nivel de DB directamente en lugar de traer todo a memoria
         List<Subject> subjects = subjectRepository.findBySemesterIdAndRecordStatusNot(semesterId, RecordStatus.CLOSED);
 
         for (Subject subject : subjects) {

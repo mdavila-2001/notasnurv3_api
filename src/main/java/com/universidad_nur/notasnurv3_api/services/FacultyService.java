@@ -26,9 +26,6 @@ public class FacultyService {
     private final DegreeRepository degreeRepository;
     private final UserDegreeRepository userDegreeRepository;
 
-    /**
-     * Obtener todas las facultades
-     */
     @Transactional(readOnly = true)
     public List<FacultyResponse> getAll() {
         return facultyRepository.findAll()
@@ -37,9 +34,6 @@ public class FacultyService {
                 .toList();
     }
 
-    /**
-     * Obtener una facultad por ID
-     */
     @Transactional(readOnly = true)
     public FacultyResponse getById(Integer id) {
         Faculty faculty = facultyRepository.findById(id)
@@ -47,17 +41,14 @@ public class FacultyService {
         return mapToResponse(faculty);
     }
 
-    /**
-     * Crear una nueva facultad
-     */
     @Transactional
     public FacultyResponse create(FacultyRequest request) {
-        // Validar que el código no exista
+
         if (facultyRepository.existsByCode(request.code())) {
             throw new DuplicateResourceException("Ya existe una facultad con el código: " + request.code());
         }
 
-        // Validar que el nombre no exista
+
         if (facultyRepository.existsByName(request.name())) {
             throw new DuplicateResourceException("Ya existe una facultad con el nombre: " + request.name());
         }
@@ -71,20 +62,17 @@ public class FacultyService {
         return mapToResponse(saved);
     }
 
-    /**
-     * Actualizar una facultad existente
-     */
     @Transactional
     public FacultyResponse update(Integer id, FacultyRequest request) {
         Faculty faculty = facultyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + id + " no fue encontrada."));
 
-        // Validar que el código no esté duplicado (excepto el mismo registro)
+
         if (!faculty.getCode().equals(request.code()) && facultyRepository.existsByCodeAndIdNot(request.code(), id)) {
             throw new DuplicateResourceException("Ya existe otra facultad con el código: " + request.code());
         }
 
-        // Validar que el nombre no esté duplicado (excepto el mismo registro)
+
         if (!faculty.getName().equals(request.name()) && facultyRepository.existsByNameAndIdNot(request.name(), id)) {
             throw new DuplicateResourceException("Ya existe otra facultad con el nombre: " + request.name());
         }
@@ -96,15 +84,12 @@ public class FacultyService {
         return mapToResponse(updated);
     }
 
-    /**
-     * Eliminar una facultad (solo si no tiene carreras asociadas)
-     */
     @Transactional
     public void delete(Integer id) {
         Faculty faculty = facultyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("La facultad con ID " + id + " no fue encontrada."));
 
-        // Validar que no existan carreras asociadas
+
         long degreeCount = degreeRepository.countByFaculty_Id(id);
         if (degreeCount > 0) {
             throw new InvalidOperationException("No se puede eliminar la facultad porque tiene " + degreeCount + " carrera(s) asociada(s).");
@@ -113,18 +98,13 @@ public class FacultyService {
         facultyRepository.delete(faculty);
     }
 
-    /**
-     * Obtener estadísticas de una facultad (alumnos activos)
-     */
     @Transactional(readOnly = true)
     public FacultyStatsResponse getStats(Integer facultyId) {
         Faculty faculty = facultyRepository.findById(facultyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Facultad no encontrada con ID: " + facultyId));
 
-        // 2. Contar expedientes con estado ACTIVE en esa facultad
         long count = userDegreeRepository.countByDegree_Faculty_IdAndStatus(facultyId, AcademicStatus.ACTIVE);
 
-        // 3. Retornar respuesta completa (incluyendo ID como está en dev)
         return FacultyStatsResponse.builder()
                 .facultyId(faculty.getId())
                 .facultyName(faculty.getName())
@@ -132,9 +112,6 @@ public class FacultyService {
                 .build();
     }
 
-    /**
-     * Mapear entidad Faculty a DTO FacultyResponse
-     */
     private FacultyResponse mapToResponse(Faculty faculty) {
         return new FacultyResponse(
                 faculty.getId(),

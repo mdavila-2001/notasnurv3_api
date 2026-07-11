@@ -24,7 +24,6 @@ public class AuditLog {
     @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 
-    // --- COLUMNAS NUEVAS DE NEON ---
     @Column(name = "user_id")
     private UUID userId;
 
@@ -34,13 +33,11 @@ public class AuditLog {
     @Column(name = "record_id", nullable = false)
     private UUID recordId; 
 
-    // 👇 AQUÍ ESTÁ LA SOLUCIÓN
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "old_value", columnDefinition = "jsonb")
     @ColumnTransformer(write = "?::jsonb")
     private String oldValue;
 
-    // 👇 AQUÍ TAMBIÉN
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "new_value", columnDefinition = "jsonb")
     @ColumnTransformer(write = "?::jsonb")

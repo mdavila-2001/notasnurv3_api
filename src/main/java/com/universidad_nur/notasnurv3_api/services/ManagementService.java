@@ -62,7 +62,6 @@ public class ManagementService {
         Management management = managementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gestión no encontrada con id: " + id));
 
-        // Validar si el nuevo año ya existe en otra gestión
         if (!management.getYear().equals(request.year()) &&
                 managementRepository.existsByYear(request.year())) {
             throw new DuplicateResourceException("El año " + request.year() + " ya está registrado");
@@ -103,7 +102,6 @@ public class ManagementService {
 
         double passRatePercentage = totalEnrollments > 0 ? ((double) passedEnrollments / totalEnrollments) * 100 : 0.0;
 
-        // Calcular alumnos en riesgo: aquellos cuyas faltas actuales están exactamente a 1 del límite
         long studentsAtRisk = 0;
         for (Enrollment enrollment : activeEnrollments) {
             long absences = absencesByEnrollmentId.getOrDefault(enrollment.getId(), 0L);

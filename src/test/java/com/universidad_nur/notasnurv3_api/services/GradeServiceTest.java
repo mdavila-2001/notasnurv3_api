@@ -77,7 +77,7 @@ class GradeServiceTest {
         semester = new Semester();
         semester.setId(1);
         semester.setStartDate(LocalDate.now().minusMonths(4));
-        semester.setEndDate(LocalDate.now().plusMonths(1)); // Active semester
+        semester.setEndDate(LocalDate.now().plusMonths(1));
 
         subject = new Subject();
         subject.setId(1);
@@ -136,7 +136,6 @@ class GradeServiceTest {
 
     @Test
     void saveGrade_lanzaInvalidOperationException_cuandoSeSuperaFechaLimite() {
-        // Establecer fin de semestre en el pasado (ayer)
         semester.setEndDate(LocalDate.now().minusDays(1));
 
         when(userRepository.findByEmail("teacher@nur.edu")).thenReturn(Optional.of(teacher));
@@ -154,7 +153,6 @@ class GradeServiceTest {
 
     @Test
     void saveGrade_exito_cuandoSeSuperaFechaLimitePeroDiasGraciaLoPermiten() {
-        // Fin de semestre hace 2 días, pero hay 5 días de gracia (límite es en 3 días)
         semester.setEndDate(LocalDate.now().minusDays(2));
 
         when(userRepository.findByEmail("teacher@nur.edu")).thenReturn(Optional.of(teacher));

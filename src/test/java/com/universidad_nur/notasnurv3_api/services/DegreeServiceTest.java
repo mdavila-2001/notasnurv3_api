@@ -64,8 +64,6 @@ class DegreeServiceTest {
                 .build();
     }
 
-    // ── getAll ────────────────────────────────────────────────────────────────
-
     @Test
     void getAll_returnsEmptyList_whenNoDegreesExist() {
         when(degreeRepository.findAllWithFaculty()).thenReturn(List.of());
@@ -93,8 +91,6 @@ class DegreeServiceTest {
         verify(degreeRepository, times(1)).findAllWithFaculty();
     }
 
-    // ── getById ────────────────────────────────────────────────────────────────
-
     @Test
     void getById_throwsResourceNotFoundException_whenDegreeDoesNotExist() {
         when(degreeRepository.findByIdWithFaculty(99)).thenReturn(Optional.empty());
@@ -117,8 +113,6 @@ class DegreeServiceTest {
         assertEquals("Facultad de Tecnología", result.facultyName());
         verify(degreeRepository, times(1)).findByIdWithFaculty(1);
     }
-
-    // ── create ────────────────────────────────────────────────────────────────
 
     @Test
     void create_throwsResourceNotFoundException_whenFacultyDoesNotExist() {
@@ -170,8 +164,6 @@ class DegreeServiceTest {
         assertEquals("Facultad de Tecnología", result.facultyName());
         verify(degreeRepository, times(1)).save(any(Degree.class));
     }
-
-    // ── update ────────────────────────────────────────────────────────────────
 
     @Test
     void update_throwsResourceNotFoundException_whenDegreeDoesNotExist() {
@@ -225,8 +217,6 @@ class DegreeServiceTest {
         assertEquals("IS", result.code());
         verify(degreeRepository, times(1)).save(mockDegree);
     }
-
-    // ── delete ────────────────────────────────────────────────────────────────
 
     @Test
     void delete_throwsResourceNotFoundException_whenDegreeDoesNotExist() {

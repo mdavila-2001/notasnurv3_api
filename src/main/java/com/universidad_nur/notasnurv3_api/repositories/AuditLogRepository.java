@@ -18,9 +18,9 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
     @Query("SELECT a, u FROM AuditLog a LEFT JOIN Users u ON a.userId = u.id " +
            "WHERE (:action IS NULL OR a.action = :action) " +
            "AND (:affectedTable IS NULL OR a.affectedTable = :affectedTable) " +
-           "AND (:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "AND (CAST(:search AS string) IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) " +
+           "OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) " +
+           "OR LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))")
     Page<Object[]> findAllWithFilters(
         @Param("action") String action,
         @Param("affectedTable") String affectedTable,

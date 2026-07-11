@@ -21,9 +21,6 @@ public class DegreeController {
 
     private final DegreeService degreeService;
 
-    /**
-     * GET /api/degrees - Listar todas las carreras
-     */
     @GetMapping
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<List<DegreeResponse>>> getAllDegrees() {
@@ -31,9 +28,6 @@ public class DegreeController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Carreras obtenidas exitosamente", degrees));
     }
 
-    /**
-     * GET /api/degrees/{id} - Obtener una carrera por ID
-     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<DegreeResponse>> getDegreeById(@PathVariable Integer id) {
@@ -41,9 +35,6 @@ public class DegreeController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Carrera obtenida exitosamente", degree));
     }
 
-    /**
-     * POST /api/degrees - Crear una nueva carrera
-     */
     @PostMapping
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<DegreeResponse>> createDegree(@Valid @RequestBody DegreeRequest request) {
@@ -52,9 +43,6 @@ public class DegreeController {
                 .body(new ApiResponse<>(true, "Carrera creada exitosamente", degree));
     }
 
-    /**
-     * PUT /api/degrees/{id} - Actualizar una carrera existente
-     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<DegreeResponse>> updateDegree(
@@ -64,9 +52,6 @@ public class DegreeController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Carrera actualizada exitosamente", degree));
     }
 
-    /**
-     * DELETE /api/degrees/{id} - Eliminar una carrera
-     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority(T(com.universidad_nur.notasnurv3_api.config.SecurityAuthorities).ROLE_ADMIN)")
     public ResponseEntity<ApiResponse<Void>> deleteDegree(@PathVariable Integer id) {
